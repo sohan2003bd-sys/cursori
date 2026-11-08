@@ -235,7 +235,7 @@ function bar(v) { post({ t: "bar", v: v }); }
     return out;
   }
   function stroke(x, y, R, b, L, cur, l) {
-    var i = (y * W + x) * 4, jr = (Math.random() - .5) * VAR[l] * (cart ? .15 : .4), col = [b[i] + jr, b[i + 1] + jr, b[i + 2] + jr];
+    var i = (y * W + x) * 4, jr = (Math.random() - .5) * VAR[l] * (cart ? .15 : .4), jc = function () { return (Math.random() - .5) * (l < 4 ? 26 : 16); }, col = [b[i] + jr + jc(), b[i + 1] + jr + jc(), b[i + 2] + jr + jc()];
     var p = [[x, y]], dx = 0, dy = 0, step = Math.max(1.2, R * .6), px = x, py = y, q;
     function dist(j, r, g, bl) { return Math.abs(b[j] - r) + Math.abs(b[j + 1] - g) + Math.abs(b[j + 2] - bl); }
     function lum(xx, yy) { xx = Math.min(W - 1, Math.max(0, xx | 0)); yy = Math.min(H - 1, Math.max(0, yy | 0)); return L[yy * W + xx]; }
@@ -255,7 +255,7 @@ function bar(v) { post({ t: "bar", v: v }); }
     if (!(QC.low && l >= 4)) p = chaikin(p); // ফোনে সূক্ষ্ম আঁচড়ে কম বিন্দু
     var cl = [0], t;
     for (t = 1; t < p.length; t++) cl.push(cl[t - 1] + Math.hypot(p[t][0] - p[t - 1][0], p[t][1] - p[t - 1][1]));
-    var w = R * (l > 4 ? 1.5 : 1.7), lc = tech ? lite(col, RAMP[l]) : col;
+    var w = R * (l > 4 ? 1.5 : 1.7) * .58, lc = tech ? lite(col, RAMP[l]) : col;
     return { l: l, w: w, p: p, cl: cl, len: cl[cl.length - 1] || 1, br: bristles(lc, w, VAR[l] * (cart ? .5 : 1)), css: "rgb(" + (lc[0] | 0) + "," + (lc[1] | 0) + "," + (lc[2] | 0) + ")" };
   }
 
@@ -744,7 +744,7 @@ self.onmessage = function (e) {
       if (d.t === "msg") { if (!go) $("msg").textContent = (d.pl && ready ? "শুরু চাপুন · " : "") + d.m; }
       else if (d.t === "bar") { if (!ready) $("bar").style.width = d.v + "%"; }
       else if (d.t === "layer") layers[d.li] = unpack(d.P);
-      else if (d.t === "play") play(false); // প্রথম ৩ স্তর হলেই আঁকা শুরু করা যাবে
+      else if (d.t === "play") { play(true); wake(); setTimeout(arp, 150); } // প্রথম ৩ স্তর হলেই আঁকা শুরু করা যাবে
       else if (d.t === "done") { NL = d.NL; planning = false; if (!go) $("msg").textContent = "শুরু চাপুন"; if (wk) { wk.terminate(); wk = null; } }
     }
     detectFaces(function (faces) {
@@ -790,19 +790,15 @@ self.onmessage = function (e) {
     for (i = 0; i < list.length; i++) { a = list[i]; curs(sox, (tx + a.x * sc) * d, (ty + a.y * sc) * d, a.ang, a.pr, a.c, d); }
   }
 
-  function dance(list, t, dt, q) { // কাজ শেষে সবাই তালে তালে নাচে: বৃত্ত → ফিতা → হৃদয় → ঢেউ
-    var ph = t / 9, i0 = Math.floor(ph), f = ph - i0, bl = f > .8 ? sm((f - .8) / .2) : 0, a0 = i0 % 4, a1 = (i0 + 1) % 4, mx = W * .33, my = H * .3, i, c, A, B, tx, ty, v, maxV = 1700 * q;
-    function form(n, u) {
-      var th = 6.2832 * u, x, y;
-      if (n === 0) { th += t * .5; var r = 1 + .1 * Math.sin(5 * th + t * 2); x = Math.cos(th) * r; y = Math.sin(th) * r; }
-      else if (n === 1) { x = Math.sin(3 * th + t * .5); y = Math.sin(2 * th); }
-      else if (n === 2) { th += t * .3; x = 16 * Math.pow(Math.sin(th), 3) / 17; y = -(13 * Math.cos(th) - 5 * Math.cos(2 * th) - 2 * Math.cos(3 * th) - Math.cos(4 * th) + 2.5) / 17; }
-      else { x = 2 * u - 1; y = .55 * Math.sin(th * 1.5 + t * 1.6); }
-      return [W / 2 + x * mx, H / 2 + y * my];
-    }
+  function dance(list, t, dt, q) { // কাজ শেষে প্রত্যেকে নিজের মতো গোল হয়ে এলোমেলোভাবে ঘোরে
+    var i, c, w, cxx, cyy, rad, th, tx, ty, v, maxV = 1700 * q, m = Math.min(W, H);
     for (i = 0; i < list.length; i++) {
-      c = list[i]; A = form(a0, c.idx / N); B = bl ? form(a1, c.idx / N) : A;
-      tx = A[0] + (B[0] - A[0]) * bl + Math.sin(t * 2.3 + c.idx) * 6 * q; ty = A[1] + (B[1] - A[1]) * bl + Math.cos(t * 2.1 + c.idx * 1.3) * 6 * q;
+      c = list[i]; w = c.idx;
+      cxx = W / 2 + Math.sin(t * .23 + w * 1.7) * W * .34 + Math.sin(t * .51 + w * .9) * W * .1; // ঘূর্ণনের কেন্দ্র নিজেই ঘুরে বেড়ায়
+      cyy = H / 2 + Math.cos(t * .19 + w * 2.3) * H * .32 + Math.cos(t * .43 + w * 1.3) * H * .1;
+      rad = m * (.04 + ((w * 7) % 10) / 10 * .1) * (1 + .35 * Math.sin(t * .8 + w));
+      th = t * (.9 + ((w * 37) % 10) / 6) * (w % 2 ? 1 : -1) + w * 2.4 + Math.sin(t * 1.7 + w) * .8;
+      tx = clamp(cxx + Math.cos(th) * rad, 20 * q, W - 20 * q); ty = clamp(cyy + Math.sin(th) * rad * (.8 + .3 * Math.sin(w)), 20 * q, H - 20 * q);
       c.vx += ((tx - c.x) * 16 - c.vx * 7) * dt; c.vy += ((ty - c.y) * 16 - c.vy * 7) * dt;
       v = Math.hypot(c.vx, c.vy); if (v > maxV) { c.vx *= maxV / v; c.vy *= maxV / v; }
       c.x += c.vx * dt; c.y += c.vy * dt;
