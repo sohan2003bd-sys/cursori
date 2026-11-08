@@ -119,6 +119,31 @@ aside{background:color-mix(in srgb,var(--s2) 93%,var(--p) 4%)}
 .rpl{position:absolute;border-radius:50%;background:currentColor;opacity:.2;transform:scale(0);animation:rp .6s var(--ease) forwards;pointer-events:none}
 @keyframes rp{to{transform:scale(1);opacity:0}}
 @media (max-width:900px){aside{border-radius:28px 28px 0 0}aside::before{content:"";display:block;width:36px;height:4px;border-radius:2px;background:var(--out);margin:0 auto 8px}.set{border-radius:28px}}
+
+
+/* ===== ম্যাটেরিয়াল ৩ ফ্ল্যাট বাটন: লাল প্রধান, বাকিগুলো টোনাল ===== */
+:root{--m-p:#B3261E;--m-onp:#fff;--m-pc:#FFDAD6;--m-onpc:#410002;--m-out:#C9B8B6}
+:root[data-theme="dark"]{--m-p:#FFB4AB;--m-onp:#690005;--m-pc:#93000A;--m-onpc:#FFDAD6;--m-out:#5c4543}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--m-p:#FFB4AB;--m-onp:#690005;--m-pc:#93000A;--m-onpc:#FFDAD6;--m-out:#5c4543}}
+.tb,.ib,.vt button,.xc,.chip,.fab,.cta{box-shadow:none;text-shadow:none;background-image:none;filter:none;font-weight:600;letter-spacing:.1px}
+.tb,.ib,.vt button,.xc{background:var(--m-pc);color:var(--m-onpc);border:0}
+.tb:hover,.ib:hover,.vt button:hover,.xc:hover{background:color-mix(in srgb,var(--m-pc) 88%,var(--m-p))}
+.tb:active:not(:disabled),.ib:active,.vt button:active,.xc:active,.fab:active:not(:disabled),.cta:active{transform:scale(.97);box-shadow:none;background:color-mix(in srgb,var(--m-pc) 78%,var(--m-p))}
+.ib{width:auto;height:40px;padding:0 16px 0 12px;border-radius:20px;display:inline-flex;align-items:center;gap:6px;font-size:13.5px}
+.ib svg{width:20px;height:20px}
+.ib.on,.vt button.on{background:var(--m-p);color:var(--m-onp)}
+.vt{border-radius:20px}.vt button{height:38px;border-radius:19px;display:inline-flex;align-items:center;gap:5px;padding:0 12px;font-size:13px}.vt button svg{width:18px;height:18px}
+.fab,.cta{background:var(--m-p);color:var(--m-onp);border:0;border-radius:20px}
+.fab:disabled,.tb:disabled{opacity:.38;filter:none}
+.seg{box-shadow:none;background:color-mix(in srgb,var(--m-pc) 45%,var(--s3))}
+.chip{border:0;color:var(--on)}.chip.on{background:var(--m-p);color:var(--m-onp);box-shadow:none}
+.xc{width:40px;height:40px;border-radius:50%;padding:0}
+
+/* ফোনের মাপ ঠিক রাখা */
+#st{flex:none;flex-direction:column;justify-content:center;gap:2px;width:68px;height:auto;min-height:54px;padding:6px 4px;border-radius:16px;font-size:11.5px}
+.vt{max-width:calc(100% - 16px);padding:3px;gap:1px}
+.vt button{min-width:34px;height:36px;padding:0 8px;font-size:12.5px;gap:4px}
+.vt output{min-width:44px;font-size:12px}
 </style></head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -138,8 +163,8 @@ aside{background:color-mix(in srgb,var(--s2) 93%,var(--p) 4%)}
   <div class="ic" id="ic"><svg class="i"><use href="#i-brush"/></svg></div>
   <div class="tt"><h1>Cursor Painter</h1><div class="sub">ছবি দিন, কার্সরের দল রংতুলিতে এঁকে দেবে</div></div>
   <span class="sp"></span>
-  <label class="ib" for="file" title="ছবি বাছুন" aria-label="ছবি বাছুন" tabindex="0"><svg class="i"><use href="#i-img"/></svg></label>
-  <button class="ib" id="tg" title="থিম বদলান" aria-label="থিম বদলান"><svg class="i"><use href="#i-theme"/></svg></button>
+  <label class="ib" for="file" title="ছবি বাছুন" aria-label="ছবি বাছুন" tabindex="0"><svg class="i"><use href="#i-img"/></svg><span>ছবি</span></label>
+  <button class="ib" id="tg" title="থিম বদলান" aria-label="থিম বদলান"><svg class="i"><use href="#i-theme"/></svg><span>থিম</span></button>
 </header>
 <div class="main">
 <section class="wk">
@@ -149,19 +174,20 @@ aside{background:color-mix(in srgb,var(--s2) 93%,var(--p) 4%)}
     <div class="world" id="wd"><canvas id="cv" width="1280" height="853"></canvas><canvas id="gd" width="1280" height="853"></canvas><div class="tex"></div><div class="grid" id="gr"></div><canvas id="ov"></canvas></div>
     <canvas id="so"></canvas>
     <div class="empty" id="empty"><label class="box" for="file"><span class="ring"><svg class="i"><use href="#i-img"/></svg></span><h2>ছবি এখানে ছাড়ুন বা বেছে নিন</h2><p>পাহাড়, নদী, আকাশ বা বাগানের ছবি সবচেয়ে সুন্দর আসে। ছবি আপনার ডিভাইসেই থাকে, কোথাও আপলোড হয় না।</p><span class="cta">গ্যালারি থেকে নিন</span></label></div>
-    <div class="vt" role="toolbar" aria-label="ভিউ নিয়ন্ত্রণ"><button id="zo" title="ছোট (−)">−</button><output id="zp">১০০%</output><button id="zi" title="বড় (+)">+</button><i></i><button id="zf" title="স্ক্রিনে ফিট (0)">ফিট</button><button id="z1" title="১:১ পিক্সেল (1)">১:১</button><i></i><button id="gb" title="গ্রিড"><svg class="i"><use href="#i-grid"/></svg></button><button id="xb" title="ক্রসহেয়ার"><svg class="i"><use href="#i-aim"/></svg></button></div>
+    <div class="vt" role="toolbar" aria-label="ভিউ নিয়ন্ত্রণ"><button id="zo" title="ছোট (−)">−</button><output id="zp">১০০%</output><button id="zi" title="বড় (+)">+</button><i></i><button id="zf" title="স্ক্রিনে ফিট (0)">ফিট</button><button id="z1" title="১:১ পিক্সেল (1)">১:১</button><i></i><button id="gb" title="গ্রিড"><svg class="i"><use href="#i-grid"/></svg><span>গ্রিড</span></button><button id="xb" title="ক্রসহেয়ার"><svg class="i"><use href="#i-aim"/></svg><span>ক্রস</span></button></div>
   </div>
   <div class="sb"><span id="co">X —  Y —</span><span id="dm">ছবি নেই</span><span class="hide">স্ক্রল: জুম · টেনে সরান · ডাবল-ক্লিক: ১:১</span></div>
 </section>
 <aside id="dk">
   <div class="set">
-    <div class="row"><span>স্টাইল</span><div class="seg" id="sT"><button class="chip on" data-v="tech">টেকনিক্যাল</button><button class="chip" data-v="real">বাস্তব</button><button class="chip" data-v="cartoon">কার্টুন</button><button class="chip" data-v="auto">অটো</button></div></div>
+    <div class="sh"><b>সেটিংস</b><button class="xc" id="xc" aria-label="বন্ধ করুন"><svg class="i" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <div class="row"><span>স্টাইল</span><div class="seg" id="sT"><button class="chip" data-v="tech">টেকনিক্যাল</button><button class="chip" data-v="real">বাস্তব</button><button class="chip" data-v="cartoon">কার্টুন</button><button class="chip on" data-v="auto">অটো</button></div></div>
     <div class="row"><span>কোয়ালিটি</span><div class="seg" id="sQ"><button class="chip on" data-v="auto">অটো</button><button class="chip" data-v="full">সর্বোচ্চ</button></div><small id="qh" style="color:var(--onv);font-size:12px;line-height:1.5"></small></div>
     <div class="row"><span>সাউন্ড</span><div class="seg" id="sA"><button class="chip on" data-v="1">চালু</button><button class="chip" data-v="0">বন্ধ</button></div></div>
   </div>
   <div class="dock">
     <div class="lin"><i id="bar"></i></div>
-    <div class="srow"><div class="stats"><div><b id="cnt">০</b><small>আঁচড়</small></div><div><b id="act">০</b><small>কার্সর কাজে</small></div><div><b id="msg">প্রস্তুত</b><small>অবস্থা</small></div></div><button class="ib" id="st" title="সেটিংস" aria-label="সেটিংস"><svg class="i"><use href="#i-tune"/></svg></button></div>
+    <div class="srow"><div class="stats"><div><b id="cnt">০</b><small>আঁচড়</small></div><div><b id="act">০</b><small>কার্সর কাজে</small></div><div><b id="msg">প্রস্তুত</b><small>অবস্থা</small></div></div><button class="ib" id="st" title="সেটিংস" aria-label="সেটিংস"><svg class="i"><use href="#i-tune"/></svg><span>সেটিংস</span></button></div>
     <div class="acts">
       <label class="tb" for="file" tabindex="0"><svg class="i"><use href="#i-img"/></svg><span>ছবি</span></label><input id="file" type="file" accept="image/*" hidden>
       <button class="tb" id="demo"><svg class="i"><use href="#i-land"/></svg><span>ডেমো</span></button>
@@ -255,7 +281,7 @@ function bar(v) { post({ t: "bar", v: v }); }
     if (!(QC.low && l >= 4)) p = chaikin(p); // ফোনে সূক্ষ্ম আঁচড়ে কম বিন্দু
     var cl = [0], t;
     for (t = 1; t < p.length; t++) cl.push(cl[t - 1] + Math.hypot(p[t][0] - p[t - 1][0], p[t][1] - p[t - 1][1]));
-    var w = R * (l > 4 ? 1.5 : 1.7) * .58, lc = tech ? lite(col, RAMP[l]) : col;
+    var w = R * (l > 4 ? 1.5 : 1.7), lc = tech ? lite(col, RAMP[l]) : col;
     return { l: l, w: w, p: p, cl: cl, len: cl[cl.length - 1] || 1, br: bristles(lc, w, VAR[l] * (cart ? .5 : 1)), css: "rgb(" + (lc[0] | 0) + "," + (lc[1] | 0) + "," + (lc[2] | 0) + ")" };
   }
 
@@ -587,9 +613,9 @@ self.onmessage = function (e) {
 <script>
 (function () {
   var $ = function (i) { return document.getElementById(i); };
-  var cv = $("cv"), cx = cv.getContext("2d", { alpha: false }), ov = $("ov"), ox = ov.getContext("2d"), gd = $("gd"), gx = gd.getContext("2d"), ptrT = 0, so = $("so"), sox = so.getContext("2d"), sod = false, pdown = false, pact = false, sol = [];
+  var cv = $("cv"), cx = cv.getContext("2d", { alpha: true }), ov = $("ov"), ox = ov.getContext("2d"), gd = $("gd"), gx = gd.getContext("2d"), ptrT = 0, so = $("so"), sox = so.getContext("2d"), sod = false, pdown = false, pact = false, sol = [];
   // W,H = পরিকল্পনার মাপ; S = ক্যানভাসের হাই-রেজুলেশন গুণক (সেভ করলে এই মাপেই হবে)
-  var W, H, k = 1, S = 2, ref, raw, src, STYLE = "tech", cart = false, human = false, tech = false, layers = [], NL = 8, N = 24, SPD = 1, BT = 4, job = 0, pj = 0, ready = false, planning = false, go = false, ptr = null, Z = 1;
+  var W, H, k = 1, S = 2, ref, raw, src, STYLE = "auto", cart = false, human = false, tech = false, layers = [], NL = 8, N = 24, SPD = 1, BT = 4, job = 0, pj = 0, ready = false, planning = false, go = false, ptr = null, Z = 1;
   var LF = [1, 1.3, 2, 3.2, 4.5, 6, 8, 10, 4], GR = [6, 4];
   // swarm এর অরিজিনাল ১২টি রং
   var COLS = ["#F24E1E","#A259FF","#1ABCFE","#0ACF83","#FF7262","#FFC700","#9747FF","#E8467C","#14AE5C","#0D99FF","#FF8A00","#00B5CE","#6C63FF","#E5484D","#30A46C","#F76B15","#3E63DD","#D6409F","#12A594","#8E4EC6","#FFB224","#0091FF","#E93D82","#7CE2FE"];
@@ -734,7 +760,7 @@ self.onmessage = function (e) {
     PAPER = STYLE === "tech" ? "#f1f5fa" : "#f3efe6"; wd.classList.toggle("tech", STYLE === "tech");
     var my = ++pj; ++job; planning = true; go = false; ready = false; layers = [];
     $("again").disabled = $("save").disabled = $("go").disabled = true;
-    cx.setTransform(S, 0, 0, S, 0, 0); cx.fillStyle = PAPER; cx.fillRect(0, 0, W, H); ox.clearRect(0, 0, ov.width, ov.height);
+    cx.globalCompositeOperation = "source-over"; cv.style.backgroundColor = ""; cx.setTransform(S, 0, 0, S, 0, 0); cx.fillStyle = PAPER; cx.fillRect(0, 0, W, H); ox.clearRect(0, 0, ov.width, ov.height);
     gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gd.width, gd.height);
     sox.setTransform(1, 0, 0, 1, 0, 0); sox.clearRect(0, 0, so.width, so.height); sod = false;
     $("cnt").textContent = "০"; $("act").textContent = "০"; $("bar").style.width = "0"; $("msg").textContent = "ছবি বিশ্লেষণ…";
@@ -744,8 +770,8 @@ self.onmessage = function (e) {
       if (d.t === "msg") { if (!go) $("msg").textContent = (d.pl && ready ? "শুরু চাপুন · " : "") + d.m; }
       else if (d.t === "bar") { if (!ready) $("bar").style.width = d.v + "%"; }
       else if (d.t === "layer") layers[d.li] = unpack(d.P);
-      else if (d.t === "play") { play(true); wake(); setTimeout(arp, 150); } // প্রথম ৩ স্তর হলেই আঁকা শুরু করা যাবে
-      else if (d.t === "done") { NL = d.NL; planning = false; if (!go) $("msg").textContent = "শুরু চাপুন"; if (wk) { wk.terminate(); wk = null; } }
+      else if (d.t === "play") { if (STYLE === "tech") { play(true); wake(); setTimeout(arp, 150); } } // প্রথম ৩ স্তর হলেই আঁকা শুরু করা যাবে
+      else if (d.t === "done") { NL = d.NL; planning = false; if (!go) $("msg").textContent = "শুরু চাপুন"; if (wk) { wk.terminate(); wk = null; } if (STYLE !== "tech") { layers = layers.filter(Boolean).reverse(); play(true); wake(); setTimeout(arp, 150); } }
     }
     detectFaces(function (faces) {
       if (my !== pj) return;
@@ -884,9 +910,11 @@ self.onmessage = function (e) {
     }
   }
   function play(auto) {
-    var my = ++job, last = performance.now(), i, j, tq = [], hd = [], total = [], started = [], done = [], agents = [], rip = [], tot = 0, fin = 0, ui = 0, finished = false, nextT = 0, fdone = 0;
+    var REV = STYLE !== "tech", my = ++job, last = performance.now(), i, j, tq = [], hd = [], total = [], started = [], done = [], agents = [], rip = [], tot = 0, fin = 0, ui = 0, finished = false, nextT = 0, fdone = 0;
     go = !!auto; sox.setTransform(1, 0, 0, 1, 0, 0); sox.clearRect(0, 0, so.width, so.height); sod = false; N = calcN(); gd.style.transition = "none"; gd.style.opacity = .7; gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gd.width, gd.height); gx.setTransform(S, 0, 0, S, 0, 0); gx.lineCap = gx.lineJoin = "round";
-    cx.setTransform(S, 0, 0, S, 0, 0); cx.fillStyle = PAPER; cx.fillRect(0, 0, W, H); cx.lineCap = cx.lineJoin = "round";
+    cx.globalCompositeOperation = "source-over"; cx.setTransform(S, 0, 0, S, 0, 0);
+    if (REV) { cx.clearRect(0, 0, W, H); cv.style.backgroundColor = PAPER; } else { cx.fillStyle = PAPER; cx.fillRect(0, 0, W, H); cv.style.backgroundColor = ""; }
+    cx.lineCap = cx.lineJoin = "round"; cx.globalCompositeOperation = REV ? "destination-over" : "source-over";
     for (i = 0; i < N; i++) { tq.push([]); hd.push([]); }
     // নতুন তৈরি হওয়া স্তর আঁকার তালিকায় যোগ করা (পরিকল্পনা চলতে থাকলেও)
     function reg(l) {
@@ -982,7 +1010,7 @@ self.onmessage = function (e) {
       }
       drawAnts(sol, tm, dt);
       if (go && !finished && !planning && fin >= tot && act === 0) {
-        finished = true; fdone = now; chord(); fadeGuide(); $("bar").style.width = "100%"; $("msg").textContent = "শেষ ✓"; $("act").textContent = "০"; $("again").disabled = $("save").disabled = false;
+        finished = true; fdone = now; if (REV) { cx.globalCompositeOperation = "destination-over"; cx.fillStyle = PAPER; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = "source-over"; } chord(); fadeGuide(); $("bar").style.width = "100%"; $("msg").textContent = "শেষ ✓"; $("act").textContent = "০"; $("again").disabled = $("save").disabled = false;
       }
       if (now - ui > 120 && !finished) { ui = now; $("bar").style.width = (tot ? fin / tot * 100 : 0) + "%"; $("cnt").textContent = bn(fin) + "/" + bn(tot); if (go) $("act").textContent = bn(act); }
       
@@ -1075,6 +1103,7 @@ self.onmessage = function (e) {
   $("sQ").querySelectorAll("button").forEach(function (x, _, b) { x.onclick = function () { b.forEach(function (y) { y.classList.remove("on"); }); x.classList.add("on"); FULL = x.dataset.v === "full"; QC = Q(); SPR = {}; qh(); if (src && !planning) useCanvas(src); }; });
   $("st").onclick = function () { var o = $("dk").classList.toggle("open"); this.classList.toggle("on", o); };
   $("stage").addEventListener("pointerdown", function () { $("dk").classList.remove("open"); $("st").classList.remove("on"); });
+  $("xc").onclick = function () { $("dk").classList.remove("open"); $("st").classList.remove("on"); };
   qh(); layout(); rulers();
   fit();
 })();
