@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Cursor Painter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eceef3;--s2:#fff;--s3:#eef0f5;--on:#171a21;--onv:#5a6275;--out:#d9dce5;--wb:#c4c9d6;--wb2:#d9dde7;--dot:#b9c2d1;--gl:#2a5bd733;--rl:#f6f7fa;--p:#3b5bdb;--onp:#fff;--pc:#dde6ff;--onpc:#0f1f55;--sc:#e4e9f7;--onsc:#14224a;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0f12;--s2:#1b1c21;--s3:#25272e;--on:#e9ebf1;--onv:#9a9fae;--out:#30323a;--wb:#131417;--wb2:#202126;--dot:#26293a;--gl:#7da2ff2e;--rl:#15161a;--p:#8fb0ff;--onp:#0b1b45;--pc:#1d2c55;--onpc:#dbe6ff;--sc:#272c3d;--onsc:#dbe4fa;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e0f12;--s2:#1b1c21;--s3:#25272e;--on:#e9ebf1;--onv:#9a9fae;--out:#30323a;--wb:#131417;--wb2:#202126;--dot:#26293a;--gl:#7da2ff2e;--rl:#15161a;--p:#8fb0ff;--onp:#0b1b45;--pc:#1d2c55;--onpc:#dbe6ff;--sc:#272c3d;--onsc:#dbe4fa;color-scheme:dark}
+html{height:100dvh;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--on);font:14px/1.45 Inter,"Noto Sans Bengali",system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;transition:background .4s}
+button,label{font-family:inherit}button{-webkit-appearance:none;appearance:none}
+svg.i{width:22px;height:22px;fill:currentColor;flex:none;pointer-events:none}
+.shell{display:grid;grid-template-rows:56px minmax(0,1fr);height:100%}
+header{display:flex;align-items:center;gap:4px;padding:0 8px 0 16px;background:var(--s2);border-bottom:1px solid var(--out);position:relative;z-index:6}
+.ic{width:36px;height:36px;margin-right:8px;border-radius:12px;display:grid;place-items:center;background:var(--p);color:var(--onp);transition:background .5s}
+.tt{min-width:0;display:grid}
+h1{margin:0;font-size:17px;line-height:1.2;font-weight:600;letter-spacing:-.01em}
+.sub{font-size:12px;color:var(--onv);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp{flex:1}
+.ib{width:42px;height:42px;border-radius:50%;border:0;background:none;color:var(--on);display:grid;place-items:center;cursor:pointer;transition:background .15s}
+.ib:hover{background:var(--s3)}.ib:active,.ib.on{background:var(--pc);color:var(--onpc)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 336px;min-height:0}
+.wk{display:grid;grid-template:22px minmax(0,1fr) 28px/22px minmax(0,1fr);min-width:0;min-height:0;background:var(--rl)}
+.rc{background:var(--rl);border-right:1px solid var(--out);border-bottom:1px solid var(--out)}
+.rl{display:block;width:100%;height:100%}
+#rx{border-bottom:1px solid var(--out)}#ry{border-right:1px solid var(--out)}
+.stage{position:relative;overflow:hidden;touch-action:none;cursor:grab;min-height:0;user-select:none;-webkit-user-select:none;background:radial-gradient(90% 80% at 50% 38%,var(--wb2),var(--wb))}
+.stage.drag{cursor:grabbing}.stage.xh{cursor:crosshair}
+.stage.xh::before,.stage.xh::after{content:"";position:absolute;pointer-events:none;z-index:4;background:var(--p);opacity:.7}
+.stage.xh::before{left:var(--mx,-9px);top:0;bottom:0;width:1px}
+.stage.xh::after{top:var(--my,-9px);left:0;right:0;height:1px}
+.world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;background:#f3efe6;outline:1px solid #0003;box-shadow:0 1px 2px #0005,0 8px 18px #0004,0 30px 80px #0006}
+.world.tech{background:#f1f5fa}.world.tech .tex{display:none}
+.world canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ov,#gd{pointer-events:none}
+.tex{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.16;background:linear-gradient(0deg,#5a4a30 0 30%,#0000 0) 0 0/calc(3px/var(--z,1)) calc(3px/var(--z,1)),linear-gradient(90deg,#5a4a30 0 30%,#0000 0) 0 0/calc(3px/var(--z,1)) calc(3px/var(--z,1))}
+.tex::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 30% 20%,#fff6 0,#0000 50%,#0003 100%)}
+.grid{position:absolute;inset:0;pointer-events:none;display:none;background-image:linear-gradient(to right,var(--gl) calc(1px/var(--z,1)),#0000 0),linear-gradient(to bottom,var(--gl) calc(1px/var(--z,1)),#0000 0)}
+.grid.on{display:block}
+#so{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.empty{position:absolute;inset:0;display:grid;place-content:center;padding:24px;z-index:3}
+.empty .box{display:grid;justify-items:center;gap:10px;padding:30px 34px;border-radius:28px;background:var(--s2);box-shadow:0 2px 6px #0003,0 18px 50px #0003;max-width:380px;text-align:center;cursor:pointer}
+.ring{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:var(--pc);color:var(--onpc)}
+.ring svg{width:34px;height:34px}
+.empty h2{margin:4px 0 0;font-size:18px;font-weight:600}
+.empty p{margin:0;font-size:13px;color:var(--onv);line-height:1.65}
+.cta{margin-top:6px;padding:11px 22px;border-radius:999px;background:var(--p);color:var(--onp);font-weight:600;font-size:14px}
+.vt{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:2px;padding:4px;border-radius:16px;background:color-mix(in srgb,var(--s2) 90%,transparent);border:1px solid var(--out);box-shadow:0 8px 24px #0004;backdrop-filter:blur(10px)}
+.vt button{min-width:36px;height:36px;padding:0 9px;border:0;border-radius:12px;background:none;color:var(--on);font-size:13px;font-weight:500;cursor:pointer;display:grid;place-items:center}
+.vt button:hover{background:var(--s3)}.vt button.on{background:var(--pc);color:var(--onpc)}
+.vt svg.i{width:20px;height:20px}
+.vt i{width:1px;height:20px;background:var(--out);margin:0 3px}
+.vt output{min-width:50px;text-align:center;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--onv)}
+.sb{grid-column:1/3;display:flex;align-items:center;gap:18px;padding:0 12px;border-top:1px solid var(--out);background:var(--s2);font-size:12px;color:var(--onv);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
+aside{position:relative;background:var(--s2);border-left:1px solid var(--out);padding:16px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.dock{display:contents}
+.lin{order:0;height:6px;border-radius:3px;background:var(--s3);overflow:hidden}
+.lin i{display:block;height:100%;width:0;background:var(--p);border-radius:3px;transition:background .5s,width .15s}
+.srow{order:1;display:flex;gap:8px}
+.stats{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--s3);border-radius:16px}
+.stats div{padding:9px 12px;min-width:0}
+.stats b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats small{font-size:11.5px;color:var(--onv)}
+#st{display:none;height:auto;width:48px;border-radius:16px;background:var(--s3)}
+.set{order:2;display:grid;gap:16px}
+.row{display:grid;gap:8px}.row>span{font-size:12.5px;font-weight:600;color:var(--onv)}
+.seg{display:flex;padding:3px;gap:2px;border-radius:14px;background:var(--s3)}
+.chip{white-space:nowrap;flex:1;height:34px;padding:0 6px;border-radius:11px;border:0;background:none;color:var(--onv);font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.chip.on{background:var(--pc);color:var(--onpc);font-weight:600}
+.acts{order:3;margin-top:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.fab{grid-row:1;grid-column:1/5;height:54px;border-radius:18px;border:0;background:var(--p);color:var(--onp);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px color-mix(in srgb,var(--p) 38%,transparent);transition:background .5s,transform .1s}
+.fab:active:not(:disabled){transform:scale(.98)}
+.tb{grid-row:2;display:grid;justify-items:center;gap:2px;padding:9px 0 7px;border-radius:16px;border:0;background:var(--s3);color:var(--on);font-size:11.5px;font-weight:500;cursor:pointer;transition:background .15s}
+.tb:hover:not(:disabled){background:var(--sc)}
+button:disabled{opacity:.38;cursor:default;box-shadow:none}
+button:focus-visible,label:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+[hidden]{display:none!important}
+@media (max-width:900px){
+.sub{display:none}
+.main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+.wk{grid-template:minmax(0,1fr)/minmax(0,1fr)}
+.rc,#rxw,#ryw,.sb{display:none}
+aside{border:0;border-radius:24px 24px 0 0;padding:10px 12px 10px;gap:0;overflow:visible;box-shadow:0 -6px 24px #0004;z-index:5}
+.dock{display:grid;gap:8px}
+#st{display:grid}
+.set{position:absolute;left:10px;right:10px;bottom:calc(100% + 10px);padding:16px;background:var(--s2);border:1px solid var(--out);border-radius:24px;box-shadow:0 14px 44px #0007;max-height:56dvh;overflow:auto;opacity:0;visibility:hidden;transform:translateY(12px) scale(.98);transition:.18s}
+aside.open .set{opacity:1;visibility:visible;transform:none}
+.acts{grid-template-columns:1fr 1fr 112px 1fr 1fr;align-items:center;gap:2px}
+.fab{grid-row:auto;grid-column:auto;height:52px;border-radius:26px;font-size:14px;padding:0 6px}
+.tb{grid-row:auto;background:none;padding:6px 0 2px}.tb:hover:not(:disabled){background:none}
+.vt{bottom:12px}
+}
+/* ===== নেটিভ অ্যাপের মতো চেহারা ===== */
+:root{--ease:cubic-bezier(.2,0,0,1)}
+body{-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-touch-callout:none}
+header{border:0;background:color-mix(in srgb,var(--s2) 88%,var(--p) 5%);box-shadow:0 1px 0 var(--out),0 8px 24px #0000000d;backdrop-filter:saturate(1.6) blur(16px)}
+.ic{width:40px;height:40px;border-radius:14px;background:linear-gradient(145deg,var(--p),color-mix(in srgb,var(--p) 60%,#000));box-shadow:0 4px 12px color-mix(in srgb,var(--p) 40%,transparent)}
+h1{font-size:18px}
+.ib,.chip,.fab,.tb,.cta,.vt button{position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.ib{transition:background .2s,transform .14s var(--ease)}.ib:active{transform:scale(.9)}
+aside{background:color-mix(in srgb,var(--s2) 93%,var(--p) 4%)}
+.lin{height:8px;border-radius:4px}
+.stats{border-radius:20px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--out) 70%,transparent)}
+.stats div+div{border-left:1px solid color-mix(in srgb,var(--out) 80%,transparent)}
+.seg{padding:4px;border-radius:18px}
+.chip{height:36px;border-radius:14px;transition:background .25s var(--ease),color .2s,box-shadow .25s,transform .14s var(--ease)}
+.chip:active{transform:scale(.95)}
+.chip.on{background:var(--s2);color:var(--p);box-shadow:0 1px 2px #0003,0 3px 10px #0000001a}
+.fab{border-radius:20px;background:linear-gradient(135deg,var(--p),color-mix(in srgb,var(--p) 68%,#000));box-shadow:0 10px 24px color-mix(in srgb,var(--p) 42%,transparent),inset 0 1px 0 #ffffff45;transition:transform .14s var(--ease),box-shadow .2s}
+.fab svg{width:24px;height:24px}.fab:active:not(:disabled){transform:scale(.96);box-shadow:0 4px 12px color-mix(in srgb,var(--p) 40%,transparent),inset 0 1px 0 #ffffff45}
+.tb{border-radius:18px;transition:background .2s,transform .14s var(--ease)}.tb:active:not(:disabled){transform:scale(.92)}.tb svg{transition:transform .2s var(--ease)}.tb:active:not(:disabled) svg{transform:scale(.85)}
+.vt{border-radius:22px;padding:5px}.vt button{height:38px;border-radius:17px;transition:background .2s,transform .12s}.vt button:active{transform:scale(.9)}
+.empty .box{border-radius:32px}.ring{background:linear-gradient(145deg,var(--pc),color-mix(in srgb,var(--pc) 70%,var(--p)))}
+.cta{display:inline-block;background:linear-gradient(135deg,var(--p),color-mix(in srgb,var(--p) 68%,#000));box-shadow:0 8px 20px color-mix(in srgb,var(--p) 38%,transparent)}
+.rpl{position:absolute;border-radius:50%;background:currentColor;opacity:.2;transform:scale(0);animation:rp .6s var(--ease) forwards;pointer-events:none}
+@keyframes rp{to{transform:scale(1);opacity:0}}
+@media (max-width:900px){aside{border-radius:28px 28px 0 0}aside::before{content:"";display:block;width:36px;height:4px;border-radius:2px;background:var(--out);margin:0 auto 8px}.set{border-radius:28px}}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-brush" viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 0 0-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 0 0 0-1.41z"/></symbol>
+<symbol id="i-img" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></symbol>
+<symbol id="i-land" viewBox="0 0 24 24"><path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+<symbol id="i-redo" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></symbol>
+<symbol id="i-dl" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></symbol>
+<symbol id="i-tune" viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></symbol>
+<symbol id="i-theme" viewBox="0 0 24 24"><path d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10v8c2.21 0 4-1.79 4-4s-1.79-4-4-4z"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/></symbol>
+<symbol id="i-aim" viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></symbol>
+</defs></svg>
+<div class="shell">
+<header>
+  <div class="ic" id="ic"><svg class="i"><use href="#i-brush"/></svg></div>
+  <div class="tt"><h1>Cursor Painter</h1><div class="sub">ছবি দিন, কার্সরের দল রংতুলিতে এঁকে দেবে</div></div>
+  <span class="sp"></span>
+  <label class="ib" for="file" title="ছবি বাছুন" aria-label="ছবি বাছুন" tabindex="0"><svg class="i"><use href="#i-img"/></svg></label>
+  <button class="ib" id="tg" title="থিম বদলান" aria-label="থিম বদলান"><svg class="i"><use href="#i-theme"/></svg></button>
+</header>
+<div class="main">
+<section class="wk">
+  <div class="rc"></div><div class="rl" id="rxw"><canvas class="rl" id="rx"></canvas></div>
+  <div class="rl" id="ryw"><canvas class="rl" id="ry"></canvas></div>
+  <div class="stage" id="stage">
+    <div class="world" id="wd"><canvas id="cv" width="1280" height="853"></canvas><canvas id="gd" width="1280" height="853"></canvas><div class="tex"></div><div class="grid" id="gr"></div><canvas id="ov"></canvas></div>
+    <canvas id="so"></canvas>
+    <div class="empty" id="empty"><label class="box" for="file"><span class="ring"><svg class="i"><use href="#i-img"/></svg></span><h2>ছবি এখানে ছাড়ুন বা বেছে নিন</h2><p>পাহাড়, নদী, আকাশ বা বাগানের ছবি সবচেয়ে সুন্দর আসে। ছবি আপনার ডিভাইসেই থাকে, কোথাও আপলোড হয় না।</p><span class="cta">গ্যালারি থেকে নিন</span></label></div>
+    <div class="vt" role="toolbar" aria-label="ভিউ নিয়ন্ত্রণ"><button id="zo" title="ছোট (−)">−</button><output id="zp">১০০%</output><button id="zi" title="বড় (+)">+</button><i></i><button id="zf" title="স্ক্রিনে ফিট (0)">ফিট</button><button id="z1" title="১:১ পিক্সেল (1)">১:১</button><i></i><button id="gb" title="গ্রিড"><svg class="i"><use href="#i-grid"/></svg></button><button id="xb" title="ক্রসহেয়ার"><svg class="i"><use href="#i-aim"/></svg></button></div>
+  </div>
+  <div class="sb"><span id="co">X —  Y —</span><span id="dm">ছবি নেই</span><span class="hide">স্ক্রল: জুম · টেনে সরান · ডাবল-ক্লিক: ১:১</span></div>
+</section>
+<aside id="dk">
+  <div class="set">
+    <div class="row"><span>স্টাইল</span><div class="seg" id="sT"><button class="chip on" data-v="tech">টেকনিক্যাল</button><button class="chip" data-v="real">বাস্তব</button><button class="chip" data-v="cartoon">কার্টুন</button><button class="chip" data-v="auto">অটো</button></div></div>
+    <div class="row"><span>কোয়ালিটি</span><div class="seg" id="sQ"><button class="chip on" data-v="auto">অটো</button><button class="chip" data-v="full">সর্বোচ্চ</button></div><small id="qh" style="color:var(--onv);font-size:12px;line-height:1.5"></small></div>
+    <div class="row"><span>সাউন্ড</span><div class="seg" id="sA"><button class="chip on" data-v="1">চালু</button><button class="chip" data-v="0">বন্ধ</button></div></div>
+  </div>
+  <div class="dock">
+    <div class="lin"><i id="bar"></i></div>
+    <div class="srow"><div class="stats"><div><b id="cnt">০</b><small>আঁচড়</small></div><div><b id="act">০</b><small>কার্সর কাজে</small></div><div><b id="msg">প্রস্তুত</b><small>অবস্থা</small></div></div><button class="ib" id="st" title="সেটিংস" aria-label="সেটিংস"><svg class="i"><use href="#i-tune"/></svg></button></div>
+    <div class="acts">
+      <label class="tb" for="file" tabindex="0"><svg class="i"><use href="#i-img"/></svg><span>ছবি</span></label><input id="file" type="file" accept="image/*" hidden>
+      <button class="tb" id="demo"><svg class="i"><use href="#i-land"/></svg><span>ডেমো</span></button>
+      <button class="fab" id="go" disabled><svg class="i"><use href="#i-play"/></svg><span>আঁকা শুরু</span></button>
+      <button class="tb" id="again" disabled><svg class="i"><use href="#i-redo"/></svg><span>আবার</span></button>
+      <button class="tb" id="save" disabled><svg class="i"><use href="#i-dl"/></svg><span>সেভ</span></button>
+    </div>
+  </div>
+</aside>
+</div></div>
+<script type="text/js-worker" id="wsrc">
+(function (self) {
+var W, H, k = 1, STYLE, PAPER, QC, raw, ref, FACES = [], tech = false, cart = false, human = false, layers = [], NL = 8, jid = 0, sent = 0;
+var rnd = function (a, b) { return a + Math.random() * (b - a); };
+var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+var bn = function (n) { return n.toLocaleString("bn-BD"); };
+var mkc = function (w, h) { var c; if (typeof OffscreenCanvas !== "undefined") c = new OffscreenCanvas(w, h); else { c = document.createElement("canvas"); c.width = w; c.height = h; } return c; };
+function post(m, tr) { m.id = jid; self.postMessage(m, tr || []); }
+function say(m, pl) { post({ t: "msg", m: m, pl: pl ? 1 : 0 }); }
+function bar(v) { post({ t: "bar", v: v }); }
+
+  function blur(d, r) {
+    r = Math.max(1, Math.round(r));
+    var t = new Float32Array(d.length), o = new Uint8ClampedArray(d.length), x, y, c, s, n, a, b;
+    for (y = 0; y < H; y++) for (c = 0; c < 3; c++) {
+      s = 0; n = 0; for (x = 0; x <= r && x < W; x++) { s += d[(y * W + x) * 4 + c]; n++; }
+      for (x = 0; x < W; x++) { t[(y * W + x) * 4 + c] = s / n; a = x - r; b = x + r + 1; if (a >= 0) { s -= d[(y * W + a) * 4 + c]; n--; } if (b < W) { s += d[(y * W + b) * 4 + c]; n++; } }
+    }
+    for (x = 0; x < W; x++) for (c = 0; c < 3; c++) {
+      s = 0; n = 0; for (y = 0; y <= r && y < H; y++) { s += t[(y * W + x) * 4 + c]; n++; }
+      for (y = 0; y < H; y++) { o[(y * W + x) * 4 + c] = s / n; a = y - r; b = y + r + 1; if (a >= 0) { s -= t[(a * W + x) * 4 + c]; n--; } if (b < H) { s += t[(b * W + x) * 4 + c]; n++; } }
+    }
+    return o;
+  }
+  var tick = function () { return new Promise(function (r) { setTimeout(r, 0); }); };
+  function chaikin(p) {
+    if (p.length < 3) return p;
+    var o = [p[0]], i, a, b;
+    for (i = 0; i < p.length - 1; i++) { a = p[i]; b = p[i + 1]; o.push([.75 * a[0] + .25 * b[0], .75 * a[1] + .25 * b[1]], [.25 * a[0] + .75 * b[0], .25 * a[1] + .75 * b[1]]); }
+    o.push(p[p.length - 1]); return o;
+  }
+  async function cartoonize(src0) {
+    var a = new Uint8ClampedArray(src0), b = new Uint8ClampedArray(src0.length), SP = [1, 2, 3], TX = [0, 1, -1, 0, 0], TY = [0, 0, 0, 1, -1], LUT = new Float32Array(766), pass, x, y, i, t, dx, dy, tmp, c;
+    for (i = 0; i < 766; i++) LUT[i] = Math.exp(-i * i / 3200);
+    for (pass = 0; pass < 3; pass++) {
+      var sp = SP[pass];
+      for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+        i = (y * W + x) * 4; var r0 = a[i], g0 = a[i + 1], b0 = a[i + 2], sr = 0, sg = 0, sb = 0, sw = 0;
+        for (var tp = 0; tp < 5; tp++) {
+          var xx = x + TX[tp] * sp, yy = y + TY[tp] * sp; if (xx < 0 || xx >= W || yy < 0 || yy >= H) continue;
+          t = (yy * W + xx) * 4; var w = LUT[Math.abs(a[t] - r0) + Math.abs(a[t + 1] - g0) + Math.abs(a[t + 2] - b0)];
+          sr += a[t] * w; sg += a[t + 1] * w; sb += a[t + 2] * w; sw += w;
+        }
+        b[i] = sr / sw; b[i + 1] = sg / sw; b[i + 2] = sb / sw; b[i + 3] = 255;
+      }
+      tmp = a; a = b; b = tmp; await tick();
+    }
+    for (i = 0; i < a.length; i += 4) {
+      var l = .3 * a[i] + .59 * a[i + 1] + .11 * a[i + 2];
+      for (c = 0; c < 3; c++) { var v = l + (a[i + c] - l) * 1.15, qv = Math.round(v / 22) * 22; a[i + c] = v + (qv - v) * .5; }
+    }
+    return a;
+  }
+  var QM = [16, 16, 14, 10, 7, 5, 4, 3], TOL = [110, 85, 65, 50, 40, 32, 26, 22], VAR = [28, 28, 24, 18, 12, 9, 7, 6];
+  function bristles(col, w, v) {
+    var n = Math.max(3, Math.min(8, Math.round(w / (2.4 * k)))), out = [], i, d, f = function (x) { return Math.max(0, Math.min(255, x + d)) | 0; };
+    for (i = 0; i < n; i++) {
+      d = (Math.random() - .5) * v;
+      out.push({ o: (i / (n - 1) - .5) * .86 + (Math.random() - .5) * .08, lw: w / n * 1.8, s: Math.random() * .1, e: .78 + Math.random() * .22, col: "rgb(" + f(col[0]) + "," + f(col[1]) + "," + f(col[2]) + ")" });
+    }
+    return out;
+  }
+  function stroke(x, y, R, b, L, cur, l) {
+    var i = (y * W + x) * 4, jr = (Math.random() - .5) * VAR[l] * (cart ? .15 : .4), col = [b[i] + jr, b[i + 1] + jr, b[i + 2] + jr];
+    var p = [[x, y]], dx = 0, dy = 0, step = Math.max(1.2, R * .6), px = x, py = y, q;
+    function dist(j, r, g, bl) { return Math.abs(b[j] - r) + Math.abs(b[j + 1] - g) + Math.abs(b[j + 2] - bl); }
+    function lum(xx, yy) { xx = Math.min(W - 1, Math.max(0, xx | 0)); yy = Math.min(H - 1, Math.max(0, yy | 0)); return L[yy * W + xx]; }
+    for (q = 0; q < QM[l]; q++) {
+      var j = ((py | 0) * W + (px | 0)) * 4;
+      if (q >= (l > 3 ? 2 : 3) && dist(j, cur[j], cur[j + 1], cur[j + 2]) < dist(j, col[0], col[1], col[2])) break;
+      if (q >= 2 && dist(j, col[0], col[1], col[2]) > TOL[l]) break; // কিনারা (চোখ, ঠোঁট, পাতার ধার) পার হয় না
+      var gx = lum(px + 1, py) - lum(px - 1, py), gy = lum(px, py + 1) - lum(px, py - 1), gm = Math.hypot(gx, gy), nx, ny;
+      if (gm < .8) { nx = dx || 1; ny = dy || (Math.random() - .5) * .4; } else { nx = -gy / gm; ny = gx / gm; if (dx * nx + dy * ny < 0) { nx = -nx; ny = -ny; } }
+      var m = Math.hypot(nx, ny) || 1; nx /= m; ny /= m;
+      if (q > 0) { nx = .6 * nx + .4 * dx; ny = .6 * ny + .4 * dy; m = Math.hypot(nx, ny) || 1; nx /= m; ny /= m; }
+      px += nx * step; py += ny * step; dx = nx; dy = ny;
+      if (px < 0 || py < 0 || px >= W || py >= H) break;
+      p.push([px, py]);
+    }
+    if (p.length < 2) p.push([x + .6, y + .4]);
+    if (!(QC.low && l >= 4)) p = chaikin(p); // ফোনে সূক্ষ্ম আঁচড়ে কম বিন্দু
+    var cl = [0], t;
+    for (t = 1; t < p.length; t++) cl.push(cl[t - 1] + Math.hypot(p[t][0] - p[t - 1][0], p[t][1] - p[t - 1][1]));
+    var w = R * (l > 4 ? 1.5 : 1.7), lc = tech ? lite(col, RAMP[l]) : col;
+    return { l: l, w: w, p: p, cl: cl, len: cl[cl.length - 1] || 1, br: bristles(lc, w, VAR[l] * (cart ? .5 : 1)), css: "rgb(" + (lc[0] | 0) + "," + (lc[1] | 0) + "," + (lc[2] | 0) + ")" };
+  }
+
+async function importance(faces) {
+  var imp = new Uint8Array(W * H), i, r, g, bl, cb, cr, sn = 0;
+  for (i = 0; i < W * H; i++) {
+    r = ref[i * 4]; g = ref[i * 4 + 1]; bl = ref[i * 4 + 2];
+    cb = 128 - .1687 * r - .3313 * g + .5 * bl; cr = 128 + .5 * r - .4187 * g - .0813 * bl;
+    if (r > 60 && cb > 77 && cb < 127 && cr > 133 && cr < 173) { imp[i] = 1; sn++; }
+  }
+  faces.forEach(function (f) {
+    var x0 = Math.max(0, f[0] - f[2] * .15 | 0), y0 = Math.max(0, f[1] - f[3] * .2 | 0), x1 = Math.min(W, f[0] + f[2] * 1.15 | 0), y1 = Math.min(H, f[1] + f[3] * 1.1 | 0), x, y;
+    for (y = y0; y < y1; y++) for (x = x0; x < x1; x++) imp[y * W + x] = 3;
+  });
+  human = faces.length > 0 || sn > W * H * .06;
+  return imp;
+}
+
+  function ink(x, y, Lb, E, bc, pen) {
+    var p = [[x, y]], dx = 0, dy = 0, px = x, py = y, q, step = tech ? Math.max(3, k * 3.2) : Math.max(1.5, k * 1.3), j = (y * W + x) * 4, col = pen || (tech ? [22, 42, 82] : [bc[j] * .35, bc[j + 1] * .35, bc[j + 2] * .35]);
+    function at(a, xx, yy) { return a[clamp(yy | 0, 1, H - 2) * W + clamp(xx | 0, 1, W - 2)]; }
+    for (q = 0; q < (tech ? 14 : 9); q++) {
+      var gx = at(Lb, px + 1, py) - at(Lb, px - 1, py), gy = at(Lb, px, py + 1) - at(Lb, px, py - 1), gm = Math.hypot(gx, gy);
+      if (gm < .5 || (q > 0 && at(E, px, py) < 14)) break;
+      var nx = -gy / gm, ny = gx / gm; if (dx * nx + dy * ny < 0) { nx = -nx; ny = -ny; }
+      if (q > 0) { nx = .7 * nx + .3 * dx; ny = .7 * ny + .3 * dy; var m = Math.hypot(nx, ny) || 1; nx /= m; ny /= m; }
+      px += nx * step; py += ny * step; dx = nx; dy = ny;
+      if (px < 1 || py < 1 || px >= W - 1 || py >= H - 1) break;
+      p.push([px, py]);
+    }
+    if (p.length < 2) p.push([x + .6, y + .4]);
+    if (!tech) p = chaikin(p);
+    var cl = [0], t, w = pen ? Math.max(1, k * .4) : tech ? Math.max(1.3, k * .6) : Math.max(1.6, k * .75);
+    for (t = 1; t < p.length; t++) cl.push(cl[t - 1] + Math.hypot(p[t][0] - p[t - 1][0], p[t][1] - p[t - 1][1]));
+    return { l: 8, w: w, p: p, cl: cl, len: cl[cl.length - 1] || 1, br: bristles(col, w, 6), css: "rgb(" + (col[0] | 0) + "," + (col[1] | 0) + "," + (col[2] | 0) + ")" };
+  }
+  var RAMP = [.2, .38, .55, .72, .86, .95, 1, 1], P0 = [241, 245, 250];
+  function lite(c, t) { return [P0[0] + (c[0] - P0[0]) * t, P0[1] + (c[1] - P0[1]) * t, P0[2] + (c[2] - P0[2]) * t]; }
+  function techify(a) {
+    var o = new Uint8ClampedArray(a.length), t = [.94, .98, 1.03], i, l, c, v;
+    for (i = 0; i < a.length; i += 4) { l = .3 * a[i] + .59 * a[i + 1] + .11 * a[i + 2]; for (c = 0; c < 3; c++) { v = Math.round((l + (a[i + c] - l) * .7) / 28) * 28; o[i + c] = (v * .92 + 12) * t[c]; } o[i + 3] = 255; }
+    return o;
+  }
+  function tl(pts, w, col) {
+    var cl = [0], t; for (t = 1; t < pts.length; t++) cl.push(cl[t - 1] + Math.hypot(pts[t][0] - pts[t - 1][0], pts[t][1] - pts[t - 1][1]));
+    return { l: 8, w: w, p: pts, cl: cl, len: cl[cl.length - 1] || 1, br: [{ s: 0, e: 1, o: 0, col: col, lw: w }], css: col };
+  }
+  function techGrid(under) { // শুধু ড্রাফটিং গ্রিড
+    var o = [], g = Math.max(40, Math.round(W / (under ? 24 : 12))), x, y, c = under ? "rgb(188,205,232)" : "rgb(172,193,224)", w = Math.max(1, k * .5), cc = "rgb(104,136,190)", cw = Math.max(1.2, k * .6);
+    for (x = g; x < W; x += g) o.push(tl([[x, 0], [x, H]], w, c)); for (y = g; y < H; y += g) o.push(tl([[0, y], [W, y]], w, c));
+    return o;
+  }
+  // ছবির আসল গঠন থেকে নকশা: প্রধান সরলরেখা (হাফ ট্রান্সফর্ম), বিষয়ের কেন্দ্র, সীমানা-বাক্স ও বৃত্ত
+  function archLines(es) {
+    var ic = es.ic, n = ic.length, A = 90, rm = Math.hypot(W, H), rb = Math.max(4, Math.round(4 * k)), nr = Math.ceil(2 * rm / rb) + 2, acc = new Int32Array(A * nr), cs = [], sn = [], o = [], i, a, r, cw = Math.max(1.3, k * .7), cc = "rgb(96,128,184)", sx = 0, sy = 0, sw = 0;
+    if (n < 30) return o;
+    for (a = 0; a < A; a++) { cs.push(Math.cos(a * Math.PI / A)); sn.push(Math.sin(a * Math.PI / A)); }
+    for (i = 0; i < n; i++) { var c = ic[i], wt = Math.min(255, c.e); sx += c.x * wt; sy += c.y * wt; sw += wt; for (a = 0; a < A; a++) acc[a * nr + ((c.x * cs[a] + c.y * sn[a] + rm) / rb | 0)]++; }
+    var mx = sx / sw, my = sy / sw, vx = 0, vy = 0; for (i = 0; i < n; i++) { vx += Math.pow(ic[i].x - mx, 2); vy += Math.pow(ic[i].y - my, 2); }
+    var rad = Math.max(40, Math.sqrt(Math.max(vx, vy) / n) * 1.1), xs = ic.map(function (c) { return c.x; }).sort(function (p, q) { return p - q; }), ys = ic.map(function (c) { return c.y; }).sort(function (p, q) { return p - q; });
+    var x0 = xs[n * .06 | 0], x1 = xs[n * .94 | 0], y0 = ys[n * .06 | 0], y1 = ys[n * .94 | 0], th = Math.max(30, n * .012), pk;
+    function clip(px, py, dx, dy) { var t0 = -1e9, t1 = 1e9, q = [[-dx, px], [dx, W - px], [-dy, py], [dy, H - py]], j; for (j = 0; j < 4; j++) { if (Math.abs(q[j][0]) < 1e-9) { if (q[j][1] < 0) return null; } else { var t = q[j][1] / q[j][0]; if (q[j][0] < 0) t0 = Math.max(t0, t); else t1 = Math.min(t1, t); } } return t0 < t1 ? [[px + dx * t0, py + dy * t0], [px + dx * t1, py + dy * t1]] : null; }
+    for (pk = 0; pk < 12; pk++) { // সবচেয়ে জোরালো সরলরেখাগুলো
+      var best = 0, ba = 0, br = 0, d, rr;
+      for (a = 0; a < A; a++) for (r = 0; r < nr; r++) if (acc[a * nr + r] > best) { best = acc[a * nr + r]; ba = a; br = r; }
+      if (best < th) break;
+      var rho = br * rb - rm, seg2 = clip(rho * cs[ba], rho * sn[ba], -sn[ba], cs[ba]);
+      if (seg2 && Math.hypot(seg2[1][0] - seg2[0][0], seg2[1][1] - seg2[0][1]) > Math.min(W, H) * .25) o.push(tl(seg2, cw, cc));
+      for (d = -4; d <= 4; d++) for (rr = -8; rr <= 8; rr++) { var aa = (ba + d + A) % A, r2 = br + rr; if (r2 >= 0 && r2 < nr) acc[aa * nr + r2] = 0; }
+    }
+    o.push(tl([[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]], cw * 1.3, "rgb(70,100,160)")); // বিষয়ের সীমানা-বাক্স
+    [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].forEach(function (q, j) { var sx2 = j === 0 || j === 3 ? 1 : -1, sy2 = j < 2 ? 1 : -1, L = rad * .25; o.push(tl([[q[0], q[1] + sy2 * L], [q[0], q[1]], [q[0] + sx2 * L, q[1]]], cw * 2, "rgb(40,70,130)")); });
+    o.push(tl([[mx - rad * .3, my], [mx + rad * .3, my]], cw, "rgb(40,70,130)"), tl([[mx, my - rad * .3], [mx, my + rad * .3]], cw, "rgb(40,70,130)"));
+    [rad * .5, rad, rad * 1.7].forEach(function (R2) { var pts = [], q; for (q = 0; q <= 72; q++) pts.push([mx + Math.cos(q / 72 * 6.2832) * R2, my + Math.sin(q / 72 * 6.2832) * R2]); o.push(tl(pts, cw, cc)); });
+    return o;
+  }
+  function per(a, lo, hi, p0, p1) { // স্বসম্পর্ক থেকে পুনরাবৃত্তির মাপ (০ = ছন্দ নেই)
+    var m = 0, v = 0, s = [], b = 0, i, p, q, N = (hi - lo) || 1; for (i = lo; i < hi; i++) m += a[i]; m /= N;
+    for (i = lo; i < hi; i++) v += (a[i] - m) * (a[i] - m); v /= N;
+    for (p = p0; p <= p1; p++) { q = 0; for (i = lo; i + p < hi; i++) q += (a[i] - m) * (a[i + p] - m); q /= (N - p) || 1; s[p] = q; if (q > b) b = q; }
+    if (!(v > 0) || b / v < .2) return 0;
+    for (p = p0 + 1; p < p1; p++) if (s[p] >= b * .8 && s[p] >= s[p - 1] && s[p] >= s[p + 1]) return p;
+    return 0;
+  }
+  function pks(a, lo, hi, md, th) { // প্রোফাইলের শৃঙ্গ (আসল রেখার অবস্থান)
+    var m = 0, i, r = [], last = -1e9; for (i = lo; i < hi; i++) m = Math.max(m, a[i]);
+    for (i = lo + 1; i < hi - 1; i++) if (a[i] > m * th && a[i] >= a[i - 1] && a[i] >= a[i + 1] && i - last >= md) { r.push(i); last = i; }
+    return r;
+  }
+  // ছবির গঠন দেখে নকশার ধরন বাছাই: নিয়মিত ইমারত / অনিয়মিত ফ্যাসাদ / মানুষ / পার্সপেকটিভ / প্রতিসম বস্তু / প্রকৃতি
+  function archPlan(es) {
+    var ic = es.ic, n = ic.length, Lb = es.Lb, rb = Math.max(2, Math.round(k * 2)), NX = Math.ceil(W / rb) + 2, NY = Math.ceil(H / rb) + 2, px = new Float32Array(NX), py = new Float32Array(NY), ex = new Float32Array(NX), te = 0, vx = 0, hx = 0, dg = 0, mx = 0, my = 0, xs = [], ys = [], o = [], i, j, c, gx, gy, a, b, q, hl = null, cw = Math.max(1.3, k * .7), cc = "rgb(70,100,160)", dk = "rgb(30,58,112)";
+    if (n < 60) { archPlan.k = "generic"; return archLines(es); }
+    for (i = 0; i < n; i++) {
+      c = ic[i]; j = c.y * W + c.x; gx = Math.abs(Lb[j + 1] - Lb[j - 1]); gy = Math.abs(Lb[j + W] - Lb[j - W]); te += c.e; mx += c.x * c.e; my += c.y * c.e; xs.push(c.x); ys.push(c.y); ex[c.x / rb | 0] += c.e;
+      if (gx > 2 * gy) { vx += c.e; px[c.x / rb | 0] += gx; } else if (gy > 2 * gx) { hx += c.e; py[c.y / rb | 0] += gy; } else dg += c.e;
+    }
+    function srt(a1, b1) { return a1 - b1; } xs.sort(srt); ys.sort(srt); mx /= te; my /= te;
+    var x0 = xs[n * .05 | 0], x1 = xs[n * .95 | 0], y0 = ys[n * .04 | 0], y1 = ys[n * .96 | 0], Wb = x1 - x0, Hb = y1 - y0, ortho = (vx + hx) / te, diag = dg / te;
+    var pr = per(py, y0 / rb | 0, y1 / rb | 0, 3, Math.max(5, Hb / rb / 2 | 0)) * rb, pc = per(px, x0 / rb | 0, x1 / rb | 0, 3, Math.max(5, Wb / rb / 2 | 0)) * rb;
+    var sb = new Float32Array(24), sm = 0, sM = 0; for (i = 0; i < n; i++) { c = ic[i]; if (c.x >= x0 && c.x < x1) sb[(c.x - x0) / (x1 - x0 + 1) * 24 | 0] += c.e; } for (i = 0; i < 12; i++) { sm += Math.min(sb[i], sb[23 - i]); sM += Math.max(sb[i], sb[23 - i]); }
+    var sym = sM > 0 ? sm / sM : 0;
+    function cx2(v) { return clamp(v, 2, W - 2); } function cy2(v) { return clamp(v, 2, H - 2); }
+    function L(p, q2, r, s2, w, col) { o.push(tl([[cx2(p), cy2(q2)], [cx2(r), cy2(s2)]], w, col || cc)); }
+    function R(p, q2, r, s2, w, col) { o.push(tl([[cx2(p), cy2(q2)], [cx2(r), cy2(q2)], [cx2(r), cy2(s2)], [cx2(p), cy2(s2)], [cx2(p), cy2(q2)]], w, col || cc)); }
+    function ell(e1, e2, ra, rb2, w) { var pts = [], t; for (t = 0; t <= 64; t++) pts.push([cx2(e1 + Math.cos(t / 64 * 6.2832) * ra), cy2(e2 + Math.sin(t / 64 * 6.2832) * rb2)]); o.push(tl(pts, w, cc)); }
+    function hough() { return hl || (hl = archLines(es).slice(0, -10)); }
+    var big = Wb > W * .15 && Hb > H * .25;
+    if (ortho > .5 && big && pr && pc && vx / te > .2 && hx / te > .2) { // ১) নিয়মিত ইমারত: সমান তলা ও বে
+      archPlan.k = "building";
+      var F = clamp(Math.round(Hb / (pr || pc * 1.15)), 2, 40), fh = Hb / F, Bn = clamp(Math.round(Wb / (pc || fh * 1.25)), 1, 24), bw = Wb / Bn, ix = bw * .16, iy = fh * .2, dc = Bn >> 1, wx, wy;
+      L(x0 - fh * .6, y1, x1 + fh * .6, y1, cw * 2.2, dk);
+      for (a = x0 - fh * .5; a < x1 + fh * .5; a += fh * .35) L(a, y1, a - fh * .25, y1 + fh * .25, cw * .8);
+      R(x0, y0, x1, y1, cw * 2.2, dk); L(x0 - fh * .12, y0, x1 + fh * .12, y0, cw * 2, dk); L(x0, y0 + fh * .1, x1, y0 + fh * .1, cw);
+      for (a = 1; a < F; a++) { b = y0 + a * fh; L(x0, b, x1, b, cw * 1.5, dk); L(x0, b + fh * .05, x1, b + fh * .05, cw * .8); }
+      for (a = 1; a < Bn; a++) L(x0 + a * bw, y0, x0 + a * bw, y1, cw);
+      for (a = 0; a < F; a++) for (b = 0; b < Bn; b++) {
+        wx = x0 + b * bw; wy = y0 + a * fh;
+        if (a === F - 1 && b === dc) { R(wx + ix, wy + fh * .1, wx + bw - ix, wy + fh, cw * 1.6, dk); L(wx + bw / 2, wy + fh * .1, wx + bw / 2, wy + fh, cw); L(wx + ix * .4, wy + fh * .08, wx + bw - ix * .4, wy + fh * .08, cw * 2, dk); continue; }
+        R(wx + ix, wy + iy, wx + bw - ix, wy + fh - iy * .8, cw, cc); L(wx + bw / 2, wy + iy, wx + bw / 2, wy + fh - iy * .8, cw * .7); L(wx + ix, wy + fh * .42, wx + bw - ix, wy + fh * .42, cw * .7);
+      }
+      for (a = 0; a <= F; a += F > 14 ? 2 : 1) {
+        b = y0 + a * fh; L(x1 + fh * .1, b, x1 + fh * .45, b, cw, dk); o.push(tl([[cx2(x1 + fh * .1), cy2(b)], [cx2(x1 + fh * .3), cy2(b - fh * .12)], [cx2(x1 + fh * .3), cy2(b + fh * .12)], [cx2(x1 + fh * .1), cy2(b)]], cw, dk));
+        o.push.apply(o, num(String(F - a), Math.min(W - fh * .3, x1 + fh * .8), cy2(b), fh * .28, 0, cw, dk));
+      }
+      L(x0 - fh * .45, y0, x0 - fh * .45, y1, cw, dk); L(x0 - fh * .55, y0, x0 - fh * .35, y0, cw, dk); L(x0 - fh * .55, y1, x0 - fh * .35, y1, cw, dk);
+      o.push.apply(o, num(String(F), Math.max(fh * .3, x0 - fh * .75), (y0 + y1) / 2, fh * .28, 1, cw, dk));
+      return o;
+    }
+    if (FACES.length || (human && ortho < .45)) { // ২) মানুষ: লুমিস পদ্ধতির মুখের গঠন
+      archPlan.k = "face";
+      var sz = Math.sqrt(Wb * Hb), f0 = FACES.length ? FACES.slice().sort(function (p1, q1) { return q1[2] * q1[3] - p1[2] * p1[3]; })[0] : [mx - sz * .2, my - sz * .3, sz * .4, sz * .5];
+      var hx0 = f0[0] + f0[2] / 2, hy0 = f0[1] + f0[3] / 2, rx = f0[2] * .62, ry = f0[3] * .78;
+      ell(hx0, hy0, rx, ry, cw * 1.6); ell(hx0, hy0, rx * .82, ry * .92, cw);
+      L(hx0, hy0 - ry * 1.2, hx0, hy0 + ry * 1.3, cw, dk);
+      [-.62, -.22, 0, .38, .62, 1].forEach(function (u) { L(hx0 - rx * 1.1, hy0 + ry * u, hx0 + rx * 1.1, hy0 + ry * u, u === 0 ? cw * 1.4 : cw * .8, u === 0 ? dk : cc); });
+      [-1, 1].forEach(function (sg) { ell(hx0 + sg * rx * .42, hy0 - ry * .04, rx * .2, ry * .07, cw); L(hx0 + sg * rx * .4, hy0 + ry * .9, hx0 + sg * rx * 2.3, hy0 + ry * 1.7, cw * 1.2, dk); });
+      ell(hx0, hy0, rx * 1.9, ry * 1.9, cw * .7);
+      return o;
+    }
+    var hs = [], ints = [], pc0 = false;
+    function persp0() { // পার্সপেকটিভের অদৃশ্য বিন্দু আছে কি (একবারই হিসাব)
+      if (pc0) return ints.length >= 4 && diag > .35; pc0 = true;
+      var i2, j2, u1, v1, u2, v2, cr, nu, tt, ix2, iy2;
+      hs = hough().filter(function (l) { var uu = l.p[1][0] - l.p[0][0], vv = l.p[1][1] - l.p[0][1], an = (Math.abs(Math.atan2(vv, uu)) * 180 / Math.PI) % 90; return Math.min(an, 90 - an) > 10; });
+      for (i2 = 0; i2 < hs.length; i2++) for (j2 = i2 + 1; j2 < hs.length; j2++) {
+        u1 = hs[i2].p[1][0] - hs[i2].p[0][0]; v1 = hs[i2].p[1][1] - hs[i2].p[0][1]; u2 = hs[j2].p[1][0] - hs[j2].p[0][0]; v2 = hs[j2].p[1][1] - hs[j2].p[0][1];
+        cr = u1 * v2 - v1 * u2; nu = Math.hypot(u1, v1) * Math.hypot(u2, v2); if (Math.abs(cr) / nu < .2) continue;
+        tt = ((hs[j2].p[0][0] - hs[i2].p[0][0]) * v2 - (hs[j2].p[0][1] - hs[i2].p[0][1]) * u2) / cr; ix2 = hs[i2].p[0][0] + u1 * tt; iy2 = hs[i2].p[0][1] + v1 * tt;
+        if (ix2 > -W && ix2 < 2 * W && iy2 > -H && iy2 < 2 * H) ints.push([ix2, iy2]);
+      }
+      if (ints.length >= 3) {
+        var mxs = ints.map(function (p2) { return p2[0]; }).sort(function (a1, b1) { return a1 - b1; })[ints.length >> 1], mys = ints.map(function (p2) { return p2[1]; }).sort(function (a1, b1) { return a1 - b1; })[ints.length >> 1], rr2 = Math.max(W, H) * .22;
+        var tot0 = ints.length; ints = ints.filter(function (p2) { return Math.hypot(p2[0] - mxs, p2[1] - mys) < rr2; }); if (ints.length < tot0 * .5) ints = [];
+      }
+      return ints.length >= 4 && diag > .35;
+    }
+    if (persp0()) { // ৪) পার্সপেকটিভ: অদৃশ্য বিন্দু থেকে রেখা
+      archPlan.k = "persp";
+      var vpx = ints.map(function (p2) { return p2[0]; }).sort(srt)[ints.length >> 1], vpy = ints.map(function (p2) { return p2[1]; }).sort(srt)[ints.length >> 1], T = [], tx, ty, dl, ddx, ddy;
+      for (a = 0; a <= 4; a++) T.push([x0 + Wb * a / 4, y0], [x0 + Wb * a / 4, y1]); for (a = 1; a < 4; a++) T.push([x0, y0 + Hb * a / 4], [x1, y0 + Hb * a / 4]);
+      T.forEach(function (t2) {
+        dl = Math.hypot(vpx - t2[0], vpy - t2[1]); if (dl < 1) return; ddx = (vpx - t2[0]) / dl; ddy = (vpy - t2[1]) / dl;
+        tx = ddx > 0 ? (W - 2 - t2[0]) / ddx : ddx < 0 ? (2 - t2[0]) / ddx : 1e9; ty = ddy > 0 ? (H - 2 - t2[1]) / ddy : ddy < 0 ? (2 - t2[1]) / ddy : 1e9; var tt = Math.min(tx, ty, dl);
+        L(t2[0], t2[1], t2[0] + ddx * tt, t2[1] + ddy * tt, cw * .9);
+      });
+      R(x0, y0, x1, y1, cw * 1.6, dk); L(0, vpy, W, vpy, cw * 1.4, dk); ell(vpx, vpy, Math.min(W, H) * .02, Math.min(W, H) * .02, cw * 1.6);
+      return o.concat(hs.slice(0, 6));
+    }
+    if (!persp0() && ortho > .42 && big && Math.min(vx, hx) / te > .18) { // ৩) অনিয়মিত ফ্যাসাদ: ছবির আসল রেখার অবস্থানেই কাঠামো
+      var rows = pks(py, Math.max(0, y0 / rb | 0), y1 / rb | 0, 3, .28).map(function (v) { return v * rb; }), cols = pks(px, Math.max(0, x0 / rb | 0), x1 / rb | 0, 3, .28).map(function (v) { return v * rb; });
+      rows = [y0].concat(rows.filter(function (v) { return v > y0 + rb * 3 && v < y1 - rb * 3; }), [y1]); cols = [x0].concat(cols.filter(function (v) { return v > x0 + rb * 3 && v < x1 - rb * 3; }), [x1]);
+      if (rows.length >= 3 && cols.length >= 3) {
+        archPlan.k = "grid";
+        R(x0, y0, x1, y1, cw * 2.2, dk); L(x0 - Wb * .05, y1, x1 + Wb * .05, y1, cw * 2.2, dk);
+        rows.forEach(function (v) { L(x0, v, x1, v, cw * 1.2, dk); }); cols.forEach(function (v) { L(v, y0, v, y1, cw * 1.2, dk); });
+        for (a = 0; a < rows.length - 1; a++) for (b = 0; b < cols.length - 1; b++) {
+          var cwid = cols[b + 1] - cols[b], chei = rows[a + 1] - rows[a]; if (cwid < rb * 4 || chei < rb * 4) continue;
+          R(cols[b] + cwid * .15, rows[a] + chei * .15, cols[b + 1] - cwid * .15, rows[a + 1] - chei * .15, cw, cc);
+          if (cwid > rb * 10) L((cols[b] + cols[b + 1]) / 2, rows[a] + chei * .15, (cols[b] + cols[b + 1]) / 2, rows[a + 1] - chei * .15, cw * .7);
+        }
+        return o;
+      }
+    }
+    if (sym > .7 && Wb < W * .8 && Hb > H * .35) { // ৫) প্রতিসম বস্তু: অক্ষ, দুই পাশের প্রোফাইল ও প্রস্থচ্ছেদ
+      archPlan.k = "symm";
+      var ax = (x0 + x1) / 2, bands = 28, bh = Hb / bands, lp = [], rp = [], ya, lo2, hi2;
+      for (j = 0; j < bands; j++) { ya = y0 + j * bh; lo2 = 1e9; hi2 = -1e9; for (i = 0; i < n; i++) { c = ic[i]; if (c.y >= ya && c.y < ya + bh) { if (c.x < lo2) lo2 = c.x; if (c.x > hi2) hi2 = c.x; } } if (hi2 > lo2) { lp.push([lo2, ya + bh / 2]); rp.push([hi2, ya + bh / 2]); } }
+      L(ax, y0 - Hb * .05, ax, y1 + Hb * .05, cw * 1.2, dk); R(x0, y0, x1, y1, cw);
+      if (lp.length > 4) { o.push(tl(chaikin(lp), cw * 1.8, dk), tl(chaikin(rp), cw * 1.8, dk), tl(chaikin(lp.map(function (p2) { return [2 * ax - p2[0], p2[1]]; })), cw, cc)); lp.forEach(function (p2, t) { if (t % 2 === 0) L(p2[0], p2[1], rp[t][0], rp[t][1], cw * .7); }); }
+      ell(ax, (y0 + y1) / 2, Wb / 2, Hb / 2, cw * .8); ell(ax, (y0 + y1) / 2, Wb * .25, Wb * .25, cw * .8);
+      return o;
+    }
+    archPlan.k = "land"; // ৬) প্রকৃতি/অন্য ছবি: আকাশরেখা, দিগন্ত, তৃতীয়াংশ ও সোনালি সর্পিল
+    var NB = 48, sk = [], xa, xb, top, bm = 0, hz = 0, sp = [], th, r;
+    for (j = 0; j < NB; j++) { xa = j / NB * W; xb = (j + 1) / NB * W; top = -1; for (i = 0; i < n; i++) { c = ic[i]; if (c.x >= xa && c.x < xb && c.y > H * .04 && c.e > te / n * 1.1 && (top < 0 || c.y < top)) top = c.y; } if (top > 0) sk.push([(xa + xb) / 2, top]); }
+    if (sk.length > 8) o.push(tl(chaikin(sk), cw * 1.8, dk));
+    for (j = 0; j < NY; j++) if (py[j] > bm) { bm = py[j]; hz = j * rb; }
+    if (bm > 0) L(0, hz, W, hz, cw * 1.4, dk);
+    [1, 2].forEach(function (u) { L(W * u / 3, 0, W * u / 3, H, cw * .8); L(0, H * u / 3, W, H * u / 3, cw * .8); });
+    for (q = 0; q <= 120; q++) { th = q / 120 * 9.4; r = Math.min(W, H) * .55 * Math.exp(-.3063 * th); sp.push([cx2(W * .62 - Math.cos(th) * r), cy2(H * .38 + Math.sin(th) * r)]); }
+    o.push(tl(sp, cw, cc));
+    return o.concat(hough().slice(0, 6));
+  }
+  var SEG = ["abcdef", "bc", "abged", "abgcd", "fgbc", "afgcd", "afgedc", "abc", "abcdefg", "abcdfg"], SQ = { a: [0, 0, 1, 0], b: [1, 0, 1, 1], c: [1, 1, 1, 2], d: [0, 2, 1, 2], e: [0, 1, 0, 2], f: [0, 0, 0, 1], g: [0, 1, 1, 1] };
+  function num(str, x, y, h, rot, w, c) { // ৭-সেগমেন্ট সংখ্যা (মাপ লেখার জন্য)
+    var o = [], cw = h * .55, tw = str.length * cw * 1.6 - cw * .6;
+    for (var i = 0; i < str.length; i++) SEG[+str[i]].split("").forEach(function (n) {
+      var q = SQ[n], ox = -tw / 2 + i * cw * 1.6, u0 = ox + q[0] * cw, v0 = (q[1] - 1) * h / 2, u1 = ox + q[2] * cw, v1 = (q[3] - 1) * h / 2;
+      o.push(tl(rot ? [[x + v0, y - u0], [x + v1, y - u1]] : [[x + u0, y + v0], [x + u1, y + v1]], w, c));
+    });
+    return o;
+  }
+  function techFrame() {
+    var o = [], m = Math.round(Math.min(W, H) * .035), c = "rgb(22,42,82)", lw = Math.max(1.6, k * 1.1), th = Math.max(1, k * .6), t = Math.max(m * .45, 3), q = m * 3.4, a = m * .55, x, y, dx = (W - 2 * m) / 40, dy = (H - 2 * m) / 28, by = H - m * 2.4, lx = m * 2.4;
+    function rc(i, w) { o.push(tl([[i, i], [W - i, i], [W - i, H - i], [i, H - i], [i, i]], w, c)); }
+    function L(a1, b1, c1, d1, w) { o.push(tl([[a1, b1], [c1, d1]], w, c)); }
+    rc(m, lw); rc(m * .5, th);
+    for (x = m + dx; x < W - m - 1; x += dx) { L(x, m, x, m + t, th); L(x, H - m, x, H - m - t, th); }
+    for (y = m + dy; y < H - m - 1; y += dy) { L(m, y, m + t, y, th); L(W - m, y, W - m - t, y, th); }
+    L(W / 2, m * .5, W / 2, m * 2, lw); L(W / 2, H - m * .5, W / 2, H - m * 2, lw); L(m * .5, H / 2, m * 2, H / 2, lw); L(W - m * .5, H / 2, W - m * 2, H / 2, lw);
+    L(q, by, W - q, by, th); L(q, by - a * 1.5, q, by + a * 1.5, th); L(W - q, by - a * 1.5, W - q, by + a * 1.5, th);
+    o.push(tl([[q + a * 1.8, by - a * .5], [q, by], [q + a * 1.8, by + a * .5]], th, c), tl([[W - q - a * 1.8, by - a * .5], [W - q, by], [W - q - a * 1.8, by + a * .5]], th, c));
+    L(lx, q, lx, H - q, th); L(lx - a * 1.5, q, lx + a * 1.5, q, th); L(lx - a * 1.5, H - q, lx + a * 1.5, H - q, th);
+    o.push(tl([[lx - a * .5, q + a * 1.8], [lx, q], [lx + a * .5, q + a * 1.8]], th, c), tl([[lx - a * .5, H - q - a * 1.8], [lx, H - q], [lx + a * .5, H - q - a * 1.8]], th, c));
+    return o.concat(num(String(W), W / 2, by - m * .9, m * .9, 0, th * 1.3, c), num(String(H), lx - m * .9, H / 2, m * .9, 1, th * 1.3, c));
+  }
+  async function plan() {
+    // ৮ স্তর: বড় তুলি থেকে ক্রমশ খুব সূক্ষ্ম খুঁটিনাটি (চুল, চোখ, পাতা) পর্যন্ত
+    var Rs = [26, 13, 7, 4, 2.4, 1.5, 1.0, .7].map(function (r) { return Math.max(2, Math.round(r * k)); });
+    var caps = [1500, 4000, 9000, 15000, 20000, 24000, 24000, 20000].map(function (c) { return Math.round(c * QC.cap); }), pc = mkc(1, 1), px, i, li, ar = 0, ag = 0, ab = 0, n = 0, imp;
+    say("ছবি বিশ্লেষণ…"); await tick(); imp = await importance(FACES);
+    tech = STYLE === "tech"; cart = tech || STYLE === "cartoon" || (STYLE === "auto" && human);
+    if (cart) { say(tech ? "ড্রয়িং রূপ…" : "কার্টুন রূপ…"); await tick(); ref = await cartoonize(raw); if (tech) ref = techify(ref); }
+    pc.width = W; pc.height = H; px = pc.getContext("2d", { willReadFrequently: true });
+    for (i = 0; i < ref.length; i += 40) { ar += ref[i]; ag += ref[i + 1]; ab += ref[i + 2]; n++; }
+    px.fillStyle = tech ? PAPER : "rgb(" + (ar / n | 0) + "," + (ag / n | 0) + "," + (ab / n | 0) + ")"; px.fillRect(0, 0, W, H); px.lineCap = px.lineJoin = "round";
+    async function edgeSet() { // কিনারা শনাক্ত করে রেখা টানার বিন্দুগুলো বের করে
+      say("রেখা টানা…"); await tick();
+      var bc = blur(ref, 1), Lb = new Float32Array(W * H), E = new Float32Array(W * H), ig = Math.max(3, Math.round(2.5 * k)), ic = [], xx, yy, i;
+      for (i = 0; i < W * H; i++) Lb[i] = .3 * bc[i * 4] + .59 * bc[i * 4 + 1] + .11 * bc[i * 4 + 2];
+      for (yy = 1; yy < H - 1; yy++) for (xx = 1; xx < W - 1; xx++) { i = yy * W + xx; E[i] = Math.hypot(Lb[i + 1] - Lb[i - 1], Lb[i + W] - Lb[i - W]); }
+      for (yy = 1; yy < H - 1; yy += ig) for (xx = 1; xx < W - 1; xx += ig) {
+        var be = 0, bx = xx, by = yy, ex, ey;
+        for (ey = yy; ey < Math.min(H - 1, yy + ig); ey++) for (ex = xx; ex < Math.min(W - 1, xx + ig); ex++) if (E[ey * W + ex] > be) { be = E[ey * W + ex]; bx = ex; by = ey; }
+        if (be > (tech ? 15 : 24)) ic.push({ e: be, x: bx, y: by });
+      }
+      ic.sort(function (p, q) { return q.e - p.e; }); ic = ic.slice(0, tech ? 18000 : 12000);
+      ic.forEach(function (c) { c.o = c.y + (Math.random() - .5) * H * .16; }); ic.sort(function (p, q) { return p.o - q.o; });
+      return { ic: ic, Lb: Lb, E: E, bc: bc };
+    }
+    var es0 = null;
+    layers = [];
+    if (tech) { // আগে জ্যামিতিক নকশা: নির্মাণ-রেখা, ফ্রেম ও পেনসিলের কিনারা; তারপর রং
+      say("নকশা তৈরি…"); await tick(); es0 = await edgeSet();
+      layers.push(techGrid(true), archPlan(es0), techFrame(), es0.ic.filter(function (c, i) { return i % 3 === 0; }).map(function (c) { return ink(c.x, c.y, es0.Lb, es0.E, es0.bc, [84, 112, 168]); }));
+      layers.forEach(function (L) { L.forEach(function (s) { s.sp = .4; }); }); flush(); // নকশার পর্ব ধীরে, যাতে স্পষ্ট দেখা যায়
+    }
+    for (li = 0; li < 8; li++) {
+      
+      say("পরিকল্পনা " + bn(li + 1) + "/" + bn(cart ? 9 : 8), 1); bar(li / 9 * 100); await tick();
+      var R = Rs[li], b = blur(ref, R * .6), cur = px.getImageData(0, 0, W, H).data, L = new Float32Array(W * H), g = R, gx, gy, x, y, sp = R >= 18 ? 3 : R >= 10 ? 2 : 1;
+      var cells = Math.ceil(W / g) * Math.ceil(H / g), cE = new Float32Array(cells), cX = new Int32Array(cells), cY = new Int32Array(cells), hist = new Int32Array(256), nc = 0, thr0 = li === 0 ? -1 : li > 5 ? 5 : li > 3 ? 8 : 12;
+      for (i = 0; i < W * H; i++) L[i] = .3 * b[i * 4] + .59 * b[i * 4 + 1] + .11 * b[i * 4 + 2];
+      for (gy = 0; gy < H; gy += g) for (gx = 0; gx < W; gx += g) {
+        var e = 0, m = -1, mx = gx, my2 = gy, cnt = 0, d, j, sk = 0, x1 = Math.min(W, gx + g), y1 = Math.min(H, gy + g);
+        for (y = gy; y < y1; y += sp) for (x = gx; x < x1; x += sp) {
+          j = (y * W + x) * 4; d = Math.abs(b[j] - cur[j]) + Math.abs(b[j + 1] - cur[j + 1]) + Math.abs(b[j + 2] - cur[j + 2]);
+          e += d; cnt++; sk += imp[y * W + x]; if (d > m) { m = d; mx = x; my2 = y; }
+        }
+        e = e / (cnt * 3) * (1 + .8 * sk / cnt); // ত্বক/মুখ হলে ত্রুটির ওজন বেশি
+        if (e > thr0) { cE[nc] = e; cX[nc] = mx; cY[nc] = my2; nc++; hist[Math.min(255, e | 0)]++; }
+      }
+      var capN = caps[li], thr = 0, acc = 0, hh, cand = [];
+      for (hh = 255; hh >= 0; hh--) { acc += hist[hh]; if (acc >= capN) { thr = hh; break; } }
+      for (i = 0; i < nc; i++) if (cE[i] >= thr) cand.push({ e: cE[i], x: cX[i], y: cY[i] });
+      cand.sort(function (p, q) { return q.e - p.e; }); cand = cand.slice(0, capN);
+      cand.forEach(function (c) { c.o = c.y + (Math.random() - .5) * H * .16; }); cand.sort(function (p, q) { return p.o - q.o; });
+      var layer = cand.map(function (c) { return stroke(c.x, c.y, R, b, L, cur, li); });
+      if (li < 7) layer.forEach(function (s) {
+        px.strokeStyle = s.css; px.lineWidth = s.w; px.beginPath(); px.moveTo(s.p[0][0], s.p[0][1]);
+        for (var q = 1; q < s.p.length; q++) px.lineTo(s.p[q][0], s.p[q][1]);
+        px.stroke();
+      });
+      layers.push(layer); flush();
+      if (li === 2) post({ t: "play" }); // প্রথম ৩ স্তর হলেই আঁকা শুরু করা যাবে, বাকিটা পেছনে তৈরি হবে
+    }
+    NL = 8;
+    if (cart) {
+      var es = es0 || await edgeSet();
+      if (tech) layers.push(techGrid(false));
+      layers.push(es.ic.map(function (c) { return ink(c.x, c.y, es.Lb, es.E, es.bc); }));
+      if (tech) layers.push(techFrame());
+      NL = 9; flush();
+    }
+    return true;
+  }
+
+function rgb(c) { var m = String(c).match(/-?\d+/g); return m ? [+m[0], +m[1], +m[2]] : [0, 0, 0]; }
+function pack(Ls, g) {
+  var n = Ls.length, np = 0, nb = 0, i, j, s, b, m, pi = 0, bi = 0;
+  for (i = 0; i < n; i++) { np += Ls[i].p.length; nb += Ls[i].br.length; }
+  var P = { n: n, g: g ? 1 : 0, pts: new Float32Array(np * 2), off: new Int32Array(n + 1), bo: new Int32Array(n + 1), bf: new Float32Array(nb * 4), bc: new Uint8ClampedArray(nb * 3), sc: new Uint8ClampedArray(n * 3), l: new Uint8Array(n), w: new Float32Array(n), ln: new Float32Array(n), sp: new Float32Array(n) };
+  for (i = 0; i < n; i++) {
+    s = Ls[i]; P.off[i] = pi; P.bo[i] = bi; P.l[i] = s.l; P.w[i] = s.w; P.ln[i] = s.len; P.sp[i] = s.sp || 0;
+    for (j = 0; j < s.p.length; j++) { P.pts[pi * 2] = s.p[j][0]; P.pts[pi * 2 + 1] = s.p[j][1]; pi++; }
+    m = rgb(s.css); P.sc[i * 3] = m[0]; P.sc[i * 3 + 1] = m[1]; P.sc[i * 3 + 2] = m[2];
+    for (j = 0; j < s.br.length; j++) {
+      b = s.br[j]; P.bf[bi * 4] = b.o; P.bf[bi * 4 + 1] = b.lw; P.bf[bi * 4 + 2] = b.s; P.bf[bi * 4 + 3] = b.e;
+      m = rgb(b.col); P.bc[bi * 3] = m[0]; P.bc[bi * 3 + 1] = m[1]; P.bc[bi * 3 + 2] = m[2]; bi++;
+    }
+  }
+  P.off[n] = pi; P.bo[n] = bi; return P;
+}
+function flush() { // তৈরি স্তরগুলো মূল থ্রেডে পাঠানো (টেকনিক্যালে নকশার স্তরগুলো সাময়িক "স্ক্যাফোল্ড")
+  while (sent < layers.length) {
+    var i = sent++, P = pack(layers[i], tech && (i < 4 || i >= 12));
+    post({ t: "layer", li: i, P: P }, [P.pts.buffer, P.off.buffer, P.bo.buffer, P.bf.buffer, P.bc.buffer, P.sc.buffer, P.l.buffer, P.w.buffer, P.ln.buffer, P.sp.buffer]);
+    layers[i] = [];
+  }
+}
+self.onmessage = function (e) {
+  var d = e.data; jid = d.id; W = d.W; H = d.H; k = d.k; STYLE = d.STYLE; PAPER = d.PAPER; QC = d.QC; raw = ref = d.raw; FACES = d.faces || []; layers = []; sent = 0;
+  plan().then(function () { post({ t: "done", NL: NL }); });
+};
+})(self);
+
+</script>
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  var cv = $("cv"), cx = cv.getContext("2d", { alpha: false }), ov = $("ov"), ox = ov.getContext("2d"), gd = $("gd"), gx = gd.getContext("2d"), ptrT = 0, so = $("so"), sox = so.getContext("2d"), sod = false, pdown = false, pact = false, sol = [];
+  // W,H = পরিকল্পনার মাপ; S = ক্যানভাসের হাই-রেজুলেশন গুণক (সেভ করলে এই মাপেই হবে)
+  var W, H, k = 1, S = 2, ref, raw, src, STYLE = "tech", cart = false, human = false, tech = false, layers = [], NL = 8, N = 24, SPD = 1, BT = 4, job = 0, pj = 0, ready = false, planning = false, go = false, ptr = null, Z = 1;
+  var LF = [1, 1.3, 2, 3.2, 4.5, 6, 8, 10, 4], GR = [6, 4];
+  // swarm এর অরিজিনাল ১২টি রং
+  var COLS = ["#F24E1E","#A259FF","#1ABCFE","#0ACF83","#FF7262","#FFC700","#9747FF","#E8467C","#14AE5C","#0D99FF","#FF8A00","#00B5CE","#6C63FF","#E5484D","#30A46C","#F76B15","#3E63DD","#D6409F","#12A594","#8E4EC6","#FFB224","#0091FF","#E93D82","#7CE2FE"];
+  var LOW0 = matchMedia("(pointer:coarse)").matches || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4, FULL = false, dirty = [], SPR = {};
+  function Q() { var low = LOW0 && !FULL; return { low: low, maxd: low ? 1600 : 2600, s: low ? 1.5 : 2.5, side: low ? 3072 : 4096, mp: low ? 9e6 : 16e6, cap: low ? .6 : 1 }; }
+  var QC = Q();
+  var PAPER = "#f3efe6", MAXD = 2600;
+  // swarm এর গোলাকার তীর কার্সর
+  var ARROW = new Path2D("M4.6 3.9 C4.2 3.1 4.9 2.4 5.7 2.8 L20.6 9.4 C21.5 9.8 21.4 11.1 20.4 11.3 L13.9 12.9 C13.4 13 13 13.4 12.9 13.9 L11.3 20.4 C11.1 21.4 9.8 21.5 9.4 20.6 Z");
+  var bn = function (n) { return n.toLocaleString("bn-BD"); };
+  var rnd = function (a, b) { return a + Math.random() * (b - a); };
+  var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+
+
+  // ---------- সাউন্ড (Web Audio দিয়ে তৈরি, কোনো অডিও ফাইল নেই) ----------
+  // E-মেজর পেন্টাটনিক সুর: বড় আঁচড়ে নিচু ও জোরালো, সূক্ষ্ম আঁচড়ে উঁচু ও নরম; ডান দিকে গেলে সুর চড়ে, কার্সরের দিকে পান হয়
+  var AC = null, snd = true, master, dly, nz, pend = null, lastSw = 0;
+  var PENT = [0, 2, 4, 7, 9], LB = [0, 0, 5, 5, 10, 10, 14, 14, 15], VOL = [.13, .11, .09, .075, .06, .05, .042, .036, .03];
+  function wake() { // ব্যবহারকারীর ট্যাপের ভেতরেই চালু করতে হয়
+    if (!snd) return;
+    if (!AC) {
+      var C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+      AC = new C(); master = AC.createGain(); master.gain.value = .55;
+      var cp = AC.createDynamicsCompressor(); master.connect(cp); cp.connect(AC.destination);
+      dly = AC.createDelay(1); dly.delayTime.value = .27; // নরম প্রতিধ্বনি
+      var fb = AC.createGain(), wet = AC.createGain(), lp = AC.createBiquadFilter();
+      fb.gain.value = .4; wet.gain.value = .4; lp.type = "lowpass"; lp.frequency.value = 2400;
+      dly.connect(lp); lp.connect(fb); fb.connect(dly); lp.connect(wet); wet.connect(master);
+      nz = AC.createBuffer(1, AC.sampleRate * .5, AC.sampleRate); var d = nz.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (AC.state !== "running") AC.resume();
+  }
+  function freq(i) { return 164.81 * Math.pow(2, (Math.floor(i / 5) * 12 + PENT[i % 5]) / 12); }
+  function note(f, vol, pan, dur, at) { // কাচের পিয়ানোর মতো নোট
+    if (!snd || !AC || AC.state !== "running") return;
+    var t = AC.currentTime + (at || 0), o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), out = g, pn;
+    o.frequency.value = f; o2.type = "triangle"; o2.frequency.value = f * 2.003; g2.gain.value = .16;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); o2.connect(g2); g2.connect(g);
+    if (AC.createStereoPanner) { pn = AC.createStereoPanner(); pn.pan.value = pan; g.connect(pn); out = pn; }
+    out.connect(master); out.connect(dly);
+    o.start(t); o2.start(t); o.stop(t + dur + .1); o2.stop(t + dur + .1);
+  }
+  function swish(pan, vol) { // তুলির হালকা খসখস
+    if (!snd || !AC || AC.state !== "running") return;
+    var t = AC.currentTime, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), pn;
+    s.buffer = nz; s.playbackRate.value = rnd(.8, 1.3); f.type = "bandpass"; f.frequency.value = rnd(1800, 3600); f.Q.value = .8;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.linearRampToValueAtTime(0, t + .16);
+    s.connect(f); f.connect(g);
+    if (AC.createStereoPanner) { pn = AC.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(master); } else g.connect(master);
+    s.start(t, rnd(0, .25), .2);
+  }
+  function sfx(xn, l, tm) { if (!snd || !AC) return; pend = { x: xn, l: l }; if (l <= 3 && tm - lastSw > .14) { lastSw = tm; swish(clamp(xn * 1.6 - .8, -1, 1), [.05, .045, .04, .035][l]); } }
+  function chord() { [0, 2, 3, 5, 7].forEach(function (d, i) { note(freq(d), .1, (i - 2) * .25, 4.5, i * .09); }); } // শেষে E-মেজর স্বরগুচ্ছ
+  function arp() { [5, 7, 8, 10].forEach(function (d, i) { note(freq(d), .07, (i - 1.5) * .3, 1.6, i * .08); }); } // শুরুর ছোট সুর
+  $("sA").querySelectorAll("button").forEach(function (x, _, b) {
+    x.onclick = function () { b.forEach(function (y) { y.classList.remove("on"); }); x.classList.add("on"); snd = x.dataset.v === "1"; if (snd) wake(); };
+  });
+
+  // স্টাইল: অটো = মানুষ শনাক্ত হলে হালকা কার্টুন, নাহলে বাস্তব
+  $("sT").querySelectorAll("button").forEach(function (x, _, b) {
+    x.onclick = function () { b.forEach(function (y) { y.classList.remove("on"); }); x.classList.add("on"); STYLE = x.dataset.v; if (raw && W) prep(); };
+  });
+
+  // ওভারলে ক্যানভাস স্ক্রিনের মাপে (ধারালো কার্সরের জন্য)
+  function fit() { var d = Math.min(window.devicePixelRatio || 1, QC.low ? 2 : 3), cw = cv.clientWidth || 1, ch = cv.clientHeight || 1, R = Math.max(1, Math.min(Z, (QC.low ? 2048 : 4096) / (Math.max(cw, ch) * d))), nw = Math.round(cw * d * R) || 1, nh = Math.round(ch * d * R) || 1; if (ov.width !== nw || ov.height !== nh) { ov.width = nw; ov.height = nh; } }
+  
+
+  // ছবির প্রধান রং থেকে থিম
+  function theme(h) {
+    var de = document.documentElement, t = de.dataset.theme, dark = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches, s = de.style;
+    s.setProperty("--p", "hsl(" + h + " " + (dark ? "70% 78%" : "45% 40%") + ")");
+    s.setProperty("--onp", dark ? "hsl(" + h + " 50% 18%)" : "#fff");
+    s.setProperty("--pc", "hsl(" + h + " " + (dark ? "35% 28%" : "80% 90%") + ")");
+    s.setProperty("--onpc", "hsl(" + h + " 60% " + (dark ? "90%" : "14%") + ")");
+    s.setProperty("--sc", "hsl(" + h + " " + (dark ? "20% 27%" : "50% 91%") + ")");
+    s.setProperty("--onsc", "hsl(" + h + " 40% " + (dark ? "90%" : "15%") + ")");
+    var tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.content = dark ? "#1b1c21" : "#ffffff";
+  }
+  function seed() {
+    var sx = 0, sy = 0, i, r, g, b, mx, mn, c, h;
+    for (i = 0; i < ref.length; i += 64) {
+      r = ref[i] / 255; g = ref[i + 1] / 255; b = ref[i + 2] / 255; mx = Math.max(r, g, b); mn = Math.min(r, g, b); c = mx - mn;
+      if (c < .15) continue;
+      h = (mx === r ? ((g - b) / c % 6 + 6) % 6 : mx === g ? (b - r) / c + 2 : (r - g) / c + 4) * Math.PI / 3;
+      sx += Math.cos(h) * c; sy += Math.sin(h) * c;
+    }
+    if (sx || sy) theme(Math.round((Math.atan2(sy, sx) * 180 / Math.PI + 360) % 360));
+  }
+
+  // ---------- ছবির উৎস ----------
+  function useCanvas(c) {
+    W = c.width; H = c.height; k = W / 720; S = Math.min(QC.s, QC.side / Math.max(W, H), Math.sqrt(QC.mp / (W * H))); src = c;
+    ref = raw = c.getContext("2d").getImageData(0, 0, W, H).data;
+    cv.width = Math.round(W * S); cv.height = Math.round(H * S); gd.width = cv.width; gd.height = cv.height;
+    $("empty").hidden = true; view(); seed(); prep(); $("dm").textContent = W + " × " + H + " px";
+  }
+  $("file").onchange = function (e) {
+    var f = e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    createImageBitmap(f).then(function (bm) {
+      var s = Math.min(1, QC.maxd / Math.max(bm.width, bm.height)), c = document.createElement("canvas"), g;
+      c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s);
+      g = c.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(bm, 0, 0, c.width, c.height); useCanvas(c);
+    }).catch(function () { alert("ছবিটি পড়া যায়নি, অন্য ছবি দিন।"); });
+  };
+  $("demo").onclick = function () {
+    var c = document.createElement("canvas"), g, x, i, dw = Math.min(2400, QC.maxd), q = dw / 720; c.width = dw; c.height = Math.round(dw * 2 / 3); x = c.getContext("2d"); x.scale(q, q);
+    g = x.createLinearGradient(0, 0, 0, 300); g.addColorStop(0, "#2b5fb8"); g.addColorStop(.7, "#f7b267"); g.addColorStop(1, "#fde2b6");
+    x.fillStyle = g; x.fillRect(0, 0, 720, 480);
+    g = x.createRadialGradient(520, 250, 6, 520, 250, 120); g.addColorStop(0, "#fffbe6"); g.addColorStop(1, "rgba(255,230,160,0)"); x.fillStyle = g; x.fillRect(0, 100, 720, 300);
+    function mt(col, pts) { x.fillStyle = col; x.beginPath(); x.moveTo(0, 480); pts.forEach(function (p) { x.lineTo(p[0], p[1]); }); x.lineTo(720, 480); x.fill(); }
+    mt("#6b5b95", [[0,300],[130,190],[250,290],[390,170],[560,300],[720,230]]);
+    mt("#355c4a", [[0,360],[160,280],[320,350],[500,270],[720,350]]);
+    g = x.createLinearGradient(0, 340, 0, 480); g.addColorStop(0, "#3d8fb5"); g.addColorStop(1, "#1d4e6b"); x.fillStyle = g; x.fillRect(0, 370, 720, 110);
+    x.fillStyle = "#1f3d2e"; for (i = 0; i < 9; i++) { var tx = 30 + i * 85 + (i % 2) * 20; x.beginPath(); x.moveTo(tx, 280 - (i % 3) * 14); x.lineTo(tx - 24, 360); x.lineTo(tx + 24, 360); x.fill(); }
+    useCanvas(c);
+  };
+
+
+  // ---------- পরিকল্পনা: আলাদা ওয়ার্কার থ্রেডে (পেজ আটকায় না) ----------
+  var wk = null, WSRC = $("wsrc").textContent;
+  function mat(s) { // আঁচড় আসলে ধরার সময়ই পূর্ণ রূপে বানানো হয়
+    if (s.br) return s;
+    var P = s.pk, i = s.i, a = P.off[i], b = P.off[i + 1], p = new Array(b - a), cl = new Array(b - a), br = [], j, q, x, y;
+    for (j = a; j < b; j++) { x = P.pts[2 * j]; y = P.pts[2 * j + 1]; p[j - a] = [x, y]; cl[j - a] = j > a ? cl[j - a - 1] + Math.hypot(x - p[j - a - 1][0], y - p[j - a - 1][1]) : 0; }
+    for (q = P.bo[i]; q < P.bo[i + 1]; q++) br.push({ o: P.bf[4 * q], lw: P.bf[4 * q + 1], s: P.bf[4 * q + 2], e: P.bf[4 * q + 3], col: "rgb(" + P.bc[3 * q] + "," + P.bc[3 * q + 1] + "," + P.bc[3 * q + 2] + ")" });
+    s.p = p; s.cl = cl; s.br = br; s.len = cl[cl.length - 1] || 1; s.css = "rgb(" + P.sc[3 * i] + "," + P.sc[3 * i + 1] + "," + P.sc[3 * i + 2] + ")"; return s;
+  }
+  function unpack(P) {
+    var out = new Array(P.n), i, o;
+    for (i = 0; i < P.n; i++) { o = P.off[i]; out[i] = { l: P.l[i], w: P.w[i], len: P.ln[i], sp: P.sp[i], g: P.g, pk: P, i: i, p: [[P.pts[2 * o], P.pts[2 * o + 1]]] }; }
+    return out;
+  }
+  function calcN() { return 36 + Math.round(54 * clamp((Math.sqrt(W * H) - 500) / 1700, 0, 1)); } // ছবি বড় হলে কার্সর বেশি: ২৪ থেকে ৬০
+  function fadeGuide() { gd.style.transition = "opacity 1.4s ease"; gd.style.opacity = 0; var j0 = job; setTimeout(function () { if (j0 === job) { gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gd.width, gd.height); gx.setTransform(S, 0, 0, S, 0, 0); } }, 1600); }
+  function detectFaces(cb) {
+    try { if (window.FaceDetector && src) { new window.FaceDetector({ maxDetectedFaces: 12 }).detect(src).then(function (fs) { cb(fs.map(function (f) { var b = f.boundingBox; return [b.x, b.y, b.width, b.height]; })); }, function () { cb([]); }); return; } } catch (e) {}
+    cb([]);
+  }
+  function prep() {
+    PAPER = STYLE === "tech" ? "#f1f5fa" : "#f3efe6"; wd.classList.toggle("tech", STYLE === "tech");
+    var my = ++pj; ++job; planning = true; go = false; ready = false; layers = [];
+    $("again").disabled = $("save").disabled = $("go").disabled = true;
+    cx.setTransform(S, 0, 0, S, 0, 0); cx.fillStyle = PAPER; cx.fillRect(0, 0, W, H); ox.clearRect(0, 0, ov.width, ov.height);
+    gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gd.width, gd.height);
+    sox.setTransform(1, 0, 0, 1, 0, 0); sox.clearRect(0, 0, so.width, so.height); sod = false;
+    $("cnt").textContent = "০"; $("act").textContent = "০"; $("bar").style.width = "0"; $("msg").textContent = "ছবি বিশ্লেষণ…";
+    if (wk) { wk.terminate(); wk = null; }
+    function onm(d) {
+      if (d.id !== my || my !== pj) return;
+      if (d.t === "msg") { if (!go) $("msg").textContent = (d.pl && ready ? "শুরু চাপুন · " : "") + d.m; }
+      else if (d.t === "bar") { if (!ready) $("bar").style.width = d.v + "%"; }
+      else if (d.t === "layer") layers[d.li] = unpack(d.P);
+      else if (d.t === "play") play(false); // প্রথম ৩ স্তর হলেই আঁকা শুরু করা যাবে
+      else if (d.t === "done") { NL = d.NL; planning = false; if (!go) $("msg").textContent = "শুরু চাপুন"; if (wk) { wk.terminate(); wk = null; } }
+    }
+    detectFaces(function (faces) {
+      if (my !== pj) return;
+      var m = { id: my, raw: new Uint8ClampedArray(raw), W: W, H: H, k: k, STYLE: STYLE, PAPER: PAPER, QC: { low: QC.low, cap: QC.cap }, faces: faces };
+      function inline() { // ওয়ার্কার না চললে আগের মতো মূল থ্রেডেই (ধীর, কিন্তু কাজ করে)
+        var fk = { postMessage: function (x) { setTimeout(function () { onm(x); }, 0); }, onmessage: null };
+        new Function("self", WSRC)(fk); fk.onmessage({ data: m });
+      }
+      try {
+        wk = new Worker(URL.createObjectURL(new Blob([WSRC], { type: "text/javascript" })));
+        wk.onmessage = function (e) { onm(e.data); };
+        wk.onerror = function () { if (wk) { wk.terminate(); wk = null; inline(); } };
+        wk.postMessage(m, [m.raw.buffer]);
+      } catch (e) { wk = null; inline(); }
+    });
+  }
+
+
+  // স্বাভাবিকভাবে কার্সর বোর্ডের ভেতরেই থাকে; শুধু বাইরে আঙুল রাখলে (allowed) বের হয়, আঙুল সরলে ফিরে আসে
+  function keep(list, allowed, q, dt) {
+    var pad = 14 * q, i, c, x, y;
+    if (allowed) return;
+    for (i = 0; i < list.length; i++) {
+      c = list[i]; x = clamp(c.x, pad, W - pad); y = clamp(c.y, pad, H - pad);
+      if (c.x >= 0 && c.y >= 0 && c.x < W && c.y < H) {
+        if (c.x < pad) { c.x = pad; c.vx = Math.abs(c.vx) * .4; } else if (c.x > W - pad) { c.x = W - pad; c.vx = -Math.abs(c.vx) * .4; }
+        if (c.y < pad) { c.y = pad; c.vy = Math.abs(c.vy) * .4; } else if (c.y > H - pad) { c.y = H - pad; c.vy = -Math.abs(c.vy) * .4; }
+      } else { var u = Math.min(1, dt * 5); c.x += (x - c.x) * u; c.y += (y - c.y) * u; c.vx *= .9; c.vy *= .9; }
+    }
+  }
+  function curs(g, x, y, ang, press, col, d) { // বোর্ডের বাইরের কার্সর, ভেতরের কার্সরের মতোই (একই আকার)
+    var s = .8 * d * (1 - .12 * press);
+    g.save(); g.translate(x, y); g.rotate(ang * Math.PI / 180); g.scale(s, s); g.translate(-5, -3.5);
+    g.shadowColor = "rgba(0,0,0,.3)"; g.shadowBlur = 3 * d; g.shadowOffsetY = d;
+    g.fillStyle = col; g.strokeStyle = "#fff"; g.lineWidth = 1.5; g.lineJoin = "round"; g.fill(ARROW); g.stroke(ARROW); g.restore();
+  }
+  function drawAnts(list, tm, dt) {
+    var d = Math.min(Math.max(devicePixelRatio || 1, 2), 3), w = Math.round(vp.clientWidth * d), h = Math.round(vp.clientHeight * d), i, a, sc = bw / W * Z;
+    if (so.width !== w || so.height !== h) { so.width = w; so.height = h; sod = true; }
+    if (!sod && !list.length) return;
+    sox.setTransform(1, 0, 0, 1, 0, 0); sox.clearRect(0, 0, so.width, so.height); sod = list.length > 0;
+    for (i = 0; i < list.length; i++) { a = list[i]; curs(sox, (tx + a.x * sc) * d, (ty + a.y * sc) * d, a.ang, a.pr, a.c, d); }
+  }
+
+  function dance(list, t, dt, q) { // কাজ শেষে সবাই তালে তালে নাচে: বৃত্ত → ফিতা → হৃদয় → ঢেউ
+    var ph = t / 9, i0 = Math.floor(ph), f = ph - i0, bl = f > .8 ? sm((f - .8) / .2) : 0, a0 = i0 % 4, a1 = (i0 + 1) % 4, mx = W * .33, my = H * .3, i, c, A, B, tx, ty, v, maxV = 1700 * q;
+    function form(n, u) {
+      var th = 6.2832 * u, x, y;
+      if (n === 0) { th += t * .5; var r = 1 + .1 * Math.sin(5 * th + t * 2); x = Math.cos(th) * r; y = Math.sin(th) * r; }
+      else if (n === 1) { x = Math.sin(3 * th + t * .5); y = Math.sin(2 * th); }
+      else if (n === 2) { th += t * .3; x = 16 * Math.pow(Math.sin(th), 3) / 17; y = -(13 * Math.cos(th) - 5 * Math.cos(2 * th) - 2 * Math.cos(3 * th) - Math.cos(4 * th) + 2.5) / 17; }
+      else { x = 2 * u - 1; y = .55 * Math.sin(th * 1.5 + t * 1.6); }
+      return [W / 2 + x * mx, H / 2 + y * my];
+    }
+    for (i = 0; i < list.length; i++) {
+      c = list[i]; A = form(a0, c.idx / N); B = bl ? form(a1, c.idx / N) : A;
+      tx = A[0] + (B[0] - A[0]) * bl + Math.sin(t * 2.3 + c.idx) * 6 * q; ty = A[1] + (B[1] - A[1]) * bl + Math.cos(t * 2.1 + c.idx * 1.3) * 6 * q;
+      c.vx += ((tx - c.x) * 16 - c.vx * 7) * dt; c.vy += ((ty - c.y) * 16 - c.vy * 7) * dt;
+      v = Math.hypot(c.vx, c.vy); if (v > maxV) { c.vx *= maxV / v; c.vy *= maxV / v; }
+      c.x += c.vx * dt; c.y += c.vy * dt;
+    }
+  }
+
+
+  // ---------- কার্সর আঁকা (swarm এর মতো, নামহীন ও ছোট) ----------
+  function sprite(col, cs) { // কার্সর একবারই আঁকা হয়, পরে শুধু বসানো হয়
+    var key = col + cs, c = SPR[key], g, pd = 4 * cs;
+    if (c) return c;
+    c = document.createElement("canvas"); c.width = c.height = Math.ceil(24 * cs + pd * 2); g = c.getContext("2d");
+    g.translate(pd, pd); g.scale(cs, cs); g.shadowColor = "rgba(0,0,0,.3)"; g.shadowBlur = 3 * cs; g.shadowOffsetY = cs;
+    g.fillStyle = col; g.strokeStyle = "#fff"; g.lineWidth = 1.5; g.lineJoin = "round"; g.fill(ARROW); g.stroke(ARROW);
+    c.ax = pd + 5 * cs; c.ay = pd + 3.5 * cs; return (SPR[key] = c);
+  }
+  function cursor(x, y, ang, press, col, cs, tip) {
+    cs = Math.max(.25, Math.round(cs * 8) / 8); var c = sprite(col, cs), s = 1 - .12 * press;
+    ox.save(); ox.translate(x, y); ox.rotate(ang * Math.PI / 180); ox.scale(s, s); ox.drawImage(c, -c.ax, -c.ay);
+    if (tip) { ox.fillStyle = tip; ox.strokeStyle = "#fff"; ox.lineWidth = 1.3 * cs; ox.beginPath(); ox.arc(0, 0, 3.2 * cs, 0, 6.3); ox.fill(); ox.stroke(); } // তুলির ডগায় এখনকার রং
+    ox.restore(); dirty.push(x - 30 * cs, y - 30 * cs, 60 * cs);
+  }
+  function seg(s, x0, y0, x1, y1, d0, d1) {
+    var dx = x1 - x0, dy = y1 - y0, d = Math.hypot(dx, dy); if (d < .01) return;
+    var nx = -dy / d, ny = dx / d, fm = (d0 + d1) / (2 * s.len), i, b, o, c2;
+    for (i = 0; i < s.br.length; i++) {
+      b = s.br[i]; if (fm < b.s || fm > b.e) continue;
+      o = b.o * s.w; c2 = s.g ? gx : cx; c2.strokeStyle = b.col; c2.lineWidth = b.lw;
+      c2.beginPath(); c2.moveTo(x0 + nx * o, y0 + ny * o); c2.lineTo(x1 + nx * o, y1 + ny * o); c2.stroke();
+    }
+  }
+  function advance(a, nd) {
+    var s = a.s, p = s.p, cl = s.cl;
+    while (a.k < p.length - 1 && cl[a.k + 1] <= nd) { seg(s, a.x, a.y, p[a.k + 1][0], p[a.k + 1][1], a.d, cl[a.k + 1]); a.x = p[a.k + 1][0]; a.y = p[a.k + 1][1]; a.d = cl[a.k + 1]; a.k++; }
+    if (a.k < p.length - 1) {
+      var f = (nd - cl[a.k]) / ((cl[a.k + 1] - cl[a.k]) || 1), nx = p[a.k][0] + (p[a.k + 1][0] - p[a.k][0]) * f, ny = p[a.k][1] + (p[a.k + 1][1] - p[a.k][1]) * f;
+      seg(s, a.x, a.y, nx, ny, a.d, nd); a.x = nx; a.y = ny; a.d = nd;
+    }
+  }
+  var sm = function (u) { return u * u * u * (u * (6 * u - 15) + 10); };
+
+  // swarm এর ঝাঁক-ঘূর্ণন: লক্ষ্যের চারপাশে ঘোরে, পাশের কার্সরের সাথে তাল মেলায়, পয়েন্টার এড়ায়
+  function follow(list, o, dt, t, q) {
+    var R = 135 * q * Math.sqrt(N / 24) * (1 + .18 * Math.sin(t * .55)), swirl = Math.tanh(Math.cos(t * .11) * 3), want = [], i, j, c, w;
+    for (i = 0; i < list.length; i++) {
+      c = list[i];
+      var vx = c.x - o.x, vy = c.y - o.y, d = Math.hypot(vx, vy) || .01, nx = vx / d, ny = vy / d, ang = Math.atan2(vy, vx);
+      var rr = R * (1 + .3 * Math.sin(3 * ang + t * .7)) + (c.orb - 120) * .55 * q;
+      var tang = 300 * q * (.7 + c.spin * .2) * swirl, rad = clamp((rr - d) * 4, -2600 * q, 1400 * q), far = clamp((d - rr) / (600 * q), 0, 1);
+      want.push([-ny * tang + nx * rad - ny * c.curl * 400 * q * far, nx * tang + ny * rad + nx * c.curl * 400 * q * far]);
+    }
+    for (i = 0; i < list.length; i++) {
+      c = list[i]; var ax = 0, ay = 0, ws = 0, fx = want[i][0], fy = want[i][1];
+      for (j = 0; j < list.length; j++) {
+        if (j === i) continue;
+        var e = list[j], dd = Math.hypot(e.x - c.x, e.y - c.y);
+        if (dd > 90 * q) continue;
+        w = 1 - dd / (90 * q); ax += e.vx * w; ay += e.vy * w; ws += w;
+      }
+      var out = c.x < 0 || c.y < 0 || c.x >= W || c.y >= H;
+      if (ws > 0 && !out) { fx = fx * .7 + ax / ws * .3; fy = fy * .7 + ay / ws * .3; }
+      if (out) { fx += Math.cos(t * (.6 + c.spin * .2) + c.idx * 2.4) * 140 * q; fy += Math.sin(t * (.5 + c.spin * .2) + c.idx * 1.7) * 140 * q; } // প্রত্যেকে নিজের মতো ঘুরে বেড়ায়
+      var dist = Math.max(0, Math.hypot(c.x - o.x, c.y - o.y) - 180 * q), maxV = c.spd * q * (1.3 + Math.min(3.2, dist / (90 * q))), Lv = Math.hypot(fx, fy);
+      if (Lv > maxV) { fx *= maxV / Lv; fy *= maxV / Lv; }
+      var gx = (fx - c.vx) * 6, gy = (fy - c.vy) * 6, maxF = c.frc * q * (1.4 + Math.min(5, dist / (50 * q))), G = Math.hypot(gx, gy);
+      if (G > maxF) { gx *= maxF / G; gy *= maxF / G; }
+      c.vx += gx * dt; c.vy += gy * dt; c.x += c.vx * dt; c.y += c.vy * dt;
+    }
+    if (pact) for (i = 0; i < list.length; i++) {
+      c = list[i]; var px = c.x - ptr.x, py = c.y - ptr.y, pd = Math.hypot(px, py) || .01, R0 = 48 * q;
+      if (pd >= R0) continue;
+      c.x = ptr.x + px / pd * R0; c.y = ptr.y + py / pd * R0; c.vx += px / pd * 260 * q; c.vy += py / pd * 260 * q;
+    }
+  }
+
+  function spread(list, d) { // বাইরের পিঁপড়ারা জট পাকায় না, প্রত্যেকে নিজের জায়গা রাখে
+    var o = [], i, j, a, b, dx, dy, dd, p, it;
+    for (i = 0; i < list.length; i++) if (list[i].x < 0 || list[i].y < 0 || list[i].x >= W || list[i].y >= H) o.push(list[i]);
+    for (it = 0; it < 3; it++) for (i = 0; i < o.length; i++) for (j = i + 1; j < o.length; j++) {
+      a = o[i]; b = o[j]; dx = b.x - a.x; dy = b.y - a.y; dd = Math.hypot(dx, dy); if (dd >= d) continue;
+      if (dd < .01) { dx = Math.cos(a.idx * 2.4); dy = Math.sin(a.idx * 2.4); dd = 1; }
+      p = (d - dd) / dd * .5; a.x -= dx * p; a.y -= dy * p; b.x += dx * p; b.y += dy * p;
+    }
+  }
+  function play(auto) {
+    var my = ++job, last = performance.now(), i, j, tq = [], hd = [], total = [], started = [], done = [], agents = [], rip = [], tot = 0, fin = 0, ui = 0, finished = false, nextT = 0, fdone = 0;
+    go = !!auto; sox.setTransform(1, 0, 0, 1, 0, 0); sox.clearRect(0, 0, so.width, so.height); sod = false; N = calcN(); gd.style.transition = "none"; gd.style.opacity = .7; gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, gd.width, gd.height); gx.setTransform(S, 0, 0, S, 0, 0); gx.lineCap = gx.lineJoin = "round";
+    cx.setTransform(S, 0, 0, S, 0, 0); cx.fillStyle = PAPER; cx.fillRect(0, 0, W, H); cx.lineCap = cx.lineJoin = "round";
+    for (i = 0; i < N; i++) { tq.push([]); hd.push([]); }
+    // নতুন তৈরি হওয়া স্তর আঁকার তালিকায় যোগ করা (পরিকল্পনা চলতে থাকলেও)
+    function reg(l) {
+      var t; total[l] = layers[l].length; started[l] = 0; done[l] = 0; tot += total[l];
+      for (t = 0; t < N; t++) { tq[t][l] = []; hd[t][l] = 0; }
+      layers[l].forEach(function (s) { s.li = l; var c = Math.min(GR[0] - 1, s.p[0][0] / W * GR[0] | 0), r = Math.min(GR[1] - 1, s.p[0][1] / H * GR[1] | 0); tq[c + GR[0] * r][l].push(s); });
+    }
+    var nreg = 0; while (nreg < layers.length) reg(nreg++);
+    for (i = 0; i < N; i++) {
+      var fast = Math.random() < .25, an = i / N * 6.283;
+      agents.push({ x: W / 2 + Math.cos(an) * W * .25, y: H / 2 + Math.sin(an) * H * .25, vx: 0, vy: 0, ang: rnd(0, 360), pr: 0, s: null, mode: 0, t: 0, T: 1, k: 0, d: 0, c: i < COLS.length ? COLS[i] : "hsl(" + (i * 137.5 % 360 | 0) + " 80% 55%)", ex: [], tile: i % (GR[0] * GR[1]), idx: i, fx: 0, fy: 0, cx: 0, cy: 0,
+        spd: fast ? rnd(1000, 1500) : rnd(300, 750), frc: fast ? rnd(3500, 6000) : rnd(700, 1800), spin: fast ? rnd(2.2, 3.4) : rnd(.8, 1.8), curl: rnd(-1, 1), orb: rnd(70, 170) });
+    }
+    $("again").disabled = $("save").disabled = true; $("go").disabled = go;
+    $("msg").textContent = go ? "আঁকছে…" : "শুরু চাপুন";
+
+    function more(s, l, n) { // কার্সরের নাগালের ভেতরের আঁচড়গুলোই একসাথে আঁকা হয়, দূরেরগুলো নয়
+      var t = Math.min(GR[0] - 1, s.p[0][0] / W * GR[0] | 0) + GR[0] * Math.min(GR[1] - 1, s.p[0][1] / H * GR[1] | 0), qq = tq[t][l], h = hd[t], o = [], z, sx = s.p[0][0], sy = s.p[0][1], rr = 16 * W / (cv.clientWidth || 360), e2 = Math.min(qq.length, h[l] + 260), i, dx, dy;
+      for (i = h[l]; i < e2 && o.length < n; i++) {
+        dx = qq[i].p[0][0] - sx; dy = qq[i].p[0][1] - sy;
+        if (dx * dx + dy * dy < rr * rr) { z = qq[i]; qq[i] = qq[h[l]]; qq[h[l]] = z; h[l]++; started[l]++; mat(z); o.push({ s: z, x: z.p[0][0], y: z.p[0][1], k: 0, d: 0 }); }
+      }
+      return o;
+    }
+    function take(a) {
+      for (var l = 0; l < total.length; l++) {
+        if (started[l] >= total[l]) continue;
+        for (var m = 0; m < l; m++) if (done[m] < total[m]) return null;
+        var s = null, h = hd[a.tile], qq = tq[a.tile][l];
+        if (h[l] < qq.length) s = qq[h[l]++];
+        else { var best = -1, bl = 0; for (var t = 0; t < N; t++) { var r = tq[t][l].length - hd[t][l]; if (r > bl) { bl = r; best = t; } } if (best >= 0) s = tq[best][l][hd[best][l]++]; }
+        if (s) { started[l]++; mat(s); }
+        return s;
+      }
+      return null;
+    }
+
+    function frame(now) {
+      if (my !== job) return;
+      if (!go && now - last < 33) { requestAnimationFrame(frame); return; }
+      var dt = Math.min(.05, (now - last) / 1000), ds = dt * SPD, tm = now / 1000, act = 0, orb = [], a, cw = cv.clientWidth || 360;
+      last = now; while (nreg < layers.length) reg(nreg++);
+      var q = W / cw * clamp(cw / 760, .45, 1), f = ov.width / W, fo = !!ptr && ptr.out && (ptr.down || ptr.touch); pact = !!ptr && (!ptr.out || fo);
+      for (j = 0; j < N; j++) {
+        a = agents[j]; a.lx = a.x; a.ly = a.y;
+        var rem = ds, gd = 0;
+        while (gd++ < 8) {
+          if (!a.s && go) {
+            var s = take(a);
+            if (s) {
+              var tx = s.p[0][0], ty = s.p[0][1], dist = Math.hypot(tx - a.x, ty - a.y) + 1e-6, off = (Math.random() - .5) * dist * .3;
+              a.s = s; a.ex = more(s, s.li, s.sp ? 2 : BT); a.mode = 1; a.t = 0; a.fx = a.x; a.fy = a.y; a.vx = a.vy = 0;
+              a.T = Math.max(.03, (.05 + .03 * Math.pow(dist / k, .6)) / Math.sqrt(LF[s.l]));
+              a.cx = (a.fx + tx) / 2 - (ty - a.fy) / dist * off; a.cy = (a.fy + ty) / 2 + (tx - a.fx) / dist * off;
+            }
+          }
+          if (!a.s) break;
+          var st = a.s, need = a.T - a.t;
+          if (rem < need) { a.t += rem; rem = 0; } else { rem -= need; a.t = a.T; }
+          if (a.mode === 1) {
+            var u = sm(Math.min(1, a.t / a.T)), v = 1 - u, tx2 = st.p[0][0], ty2 = st.p[0][1];
+            a.x = v * v * a.fx + 2 * v * u * a.cx + u * u * tx2; a.y = v * v * a.fy + 2 * v * u * a.cy + u * u * ty2;
+            if (a.t >= a.T) { a.mode = 2; a.t = 0; a.x = tx2; a.y = ty2; a.k = 0; a.d = 0; a.T = Math.max(.04, st.len / (k * 380 * LF[st.l] * (st.sp || 1))); if (st.l < 5 && rip.length < 40) rip.push({ x: a.x, y: a.y, t: 0, c: st.css }); sfx(a.x / W, st.l, tm); }
+          } else {
+            var uu = Math.min(1, a.t / a.T), e = (1 - Math.cos(Math.PI * uu)) / 2;
+            advance(a, e * st.len); for (var xi = 0; xi < a.ex.length; xi++) advance(a.ex[xi], e * a.ex[xi].s.len);
+            if (uu >= 1) { advance(a, st.len); done[st.li]++; fin++; a.ex.forEach(function (x) { advance(x, x.s.len); done[x.s.li]++; fin++; }); a.ex = []; a.s = null; a.vx = a.vy = 0; }
+          }
+          if (rem <= 0) break;
+        }
+        if (a.s) act++; else orb.push(a);
+      }
+      // কাজ না থাকা কার্সর (শুরুর আগে, স্তরের অপেক্ষায়, শেষে) swarm এর মতো ঘোরে ও নেচে বেড়ায়
+      var dn = finished && !fo && (!pact || now - ptrT > 2500); if (dn) dance(orb, tm, dt, q); else follow(orb, pact ? ptr : { x: W / 2 + Math.sin(tm * .37) * W * .22, y: H / 2 + Math.cos(tm * .29) * H * .18 }, dt, tm, fo ? q / Z : q);
+      keep(orb, fo, q, dt); spread(orb, 24 / (bw / W * Z));
+
+      // সাউন্ডের তাল: প্রতি ০.৩ সেকেন্ডে একটি নোট (গতি যতই হোক, শব্দ এলোমেলো হয় না)
+      if (snd && AC && tm >= nextT) {
+        nextT = tm + .3;
+        if (finished) { if (Math.random() < .5) { var ag = agents[Math.random() * N | 0]; note(freq(clamp(5 + Math.floor((1 - ag.y / H) * 8), 5, 14)), .06, clamp(ag.x / W * 1.6 - .8, -1, 1), 2.8); } }
+        else if (go && pend) { note(freq(LB[pend.l] + Math.floor(pend.x * 4.99)), VOL[pend.l], clamp(pend.x * 1.6 - .8, -1, 1), 2.2); pend = null; }
+      }
+      ox.setTransform(1, 0, 0, 1, 0, 0); for (var di = 0; di < dirty.length; di += 3) ox.clearRect(dirty[di], dirty[di + 1], dirty[di + 2], dirty[di + 2]); dirty.length = 0;
+      var cs = .8 * ov.width / cw / Z, r; sol.length = 0;
+      for (var z = rip.length - 1; z >= 0; z--) { r = rip[z]; r.t += dt; if (r.t > .5) { rip.splice(z, 1); continue; } dirty.push(r.x * f - 36 * cs, r.y * f - 36 * cs, 72 * cs); ox.globalAlpha = (1 - r.t / .5) * .5; ox.strokeStyle = r.c; ox.lineWidth = 1.6 * cs; ox.beginPath(); ox.arc(r.x * f, r.y * f, (5 + r.t * 28) * cs, 0, 6.3); ox.stroke(); }
+      ox.globalAlpha = 1;
+      for (j = 0; j < N; j++) {
+        a = agents[j];
+        var mx = a.x - a.lx, my3 = a.y - a.ly;
+        if (Math.hypot(mx, my3) > .05 * q) { var dd = ((Math.atan2(my3, mx) * 180 / Math.PI + 128 - a.ang + 540) % 360 + 360) % 360 - 180; a.ang += dd * Math.min(1, dt * 9); }
+        a.pr += ((a.s && a.mode === 2 ? 1 : (dn ? .5 + .5 * Math.sin(tm * 4 + j * .8) : 0)) - a.pr) * Math.min(1, dt * 14);
+        if (a.x < 0 || a.y < 0 || a.x >= W || a.y >= H) sol.push(a); else cursor(a.x * f, a.y * f, a.ang, a.pr, a.c, cs, a.s && a.mode === 2 ? a.s.css : null);
+      }
+      drawAnts(sol, tm, dt);
+      if (go && !finished && !planning && fin >= tot && act === 0) {
+        finished = true; fdone = now; chord(); fadeGuide(); $("bar").style.width = "100%"; $("msg").textContent = "শেষ ✓"; $("act").textContent = "০"; $("again").disabled = $("save").disabled = false;
+      }
+      if (now - ui > 120 && !finished) { ui = now; $("bar").style.width = (tot ? fin / tot * 100 : 0) + "%"; $("cnt").textContent = bn(fin) + "/" + bn(tot); if (go) $("act").textContent = bn(act); }
+      
+      requestAnimationFrame(frame);
+    }
+    ready = true; requestAnimationFrame(frame);
+  }
+
+  $("go").onclick = function () { if (ready && !go) { wake(); setTimeout(arp, 150); go = true; $("go").disabled = true; $("msg").textContent = "আঁকছে…"; } };
+  $("again").onclick = function () { if (!planning && layers.length) { wake(); play(true); } };
+  // সেভ: পুরো হাই-রেজুলেশন ক্যানভাস PNG হিসেবে
+  $("save").onclick = function () {
+    cv.toBlob(function (bl) { var a = document.createElement("a"); a.href = URL.createObjectURL(bl); a.download = "cursor-painting-" + cv.width + "x" + cv.height + ".png"; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000); }, "image/png");
+  };
+
+  // ছবির ওপর আঙুল/মাউস নিলে কার্সরেরা সেদিকে ঘোরে
+  var st = $("stage");
+  function pp(e) { if (!W) return; if (e.target.closest && e.target.closest(".vt")) { ptr = null; return; } ptrT = performance.now(); var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height; ptr = { x: x, y: y, out: x < 0 || y < 0 || x >= W || y >= H, down: pdown, touch: e.pointerType !== "mouse" }; }
+  st.addEventListener("pointermove", pp); st.addEventListener("pointerdown", function (e) { pdown = true; pp(e); });
+  st.addEventListener("pointerleave", function (e) { if (e.pointerType === "mouse") ptr = null; });
+  st.addEventListener("pointercancel", function () { pdown = false; if (ptr) ptr.down = false; });
+  st.addEventListener("pointerup", function (e) { pdown = false; if (ptr) ptr.down = false; if (e.pointerType !== "mouse") setTimeout(function () { if (!pdown) ptr = null; }, 1200); });
+
+  // ---------- ওয়ার্কবেঞ্চ: জুম, প্যান, রুলার, গ্রিড ----------
+  var vp = $("stage"), wd = $("wd"), gr = $("gr"), rx = $("rx"), ry = $("ry"), tx = 0, ty = 0, bw = 1, bh = 1, vw = 0, vh = 0, zt = 0, rt = 0, pts = {}, pin = 0, mv = 0;
+  var cssv = function (n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); };
+  function zmax() { return W ? Math.max(1, 24 * W / bw) : 1; }
+  function layout() { var r = vp.getBoundingClientRect(); vw = r.width; vh = r.height; if (!W) return; var s = Math.min((vw - 80) / W, (vh - 100) / H); bw = W * s; bh = H * s; wd.style.width = bw + "px"; wd.style.height = bh + "px"; }
+  function view() { layout(); Z = 1; tx = (vw - bw) / 2; ty = (vh - bh) / 2 - 12; apply(); }
+  function apply() {
+    Z = clamp(Z, .25, zmax());
+    tx = clamp(tx, 60 - bw * Z, vw - 60); ty = clamp(ty, 60 - bh * Z, vh - 60);
+    wd.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + Z + ")"; wd.style.setProperty("--z", Z);
+    var pxs = Z * bw / W || 1, st0 = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000], g = 50; for (var i = 0; i < st0.length; i++) { g = st0[i]; if (g * pxs >= 26) break; }
+    gr.style.backgroundSize = (g * bw / W) + "px " + (g * bw / W) + "px";
+    $("zp").textContent = bn(Math.round(pxs * 100)) + "%";
+    clearTimeout(zt); zt = setTimeout(fit, 140);
+    if (!rt) rt = requestAnimationFrame(function () { rt = 0; rulers(); });
+  }
+  function rulers() {
+    var d = Math.min(devicePixelRatio || 1, 2), pxs = Z * bw / W, st0 = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000], g = 2000, i, c, ctx, x, v, K = cssv("--onv"), L = cssv("--out");
+    if (!W) { pxs = 1; }
+    for (i = 0; i < st0.length; i++) { g = st0[i]; if (g * pxs >= 64) break; }
+    [[rx, vw, 22, tx], [ry, 22, vh, ty]].forEach(function (a, n) {
+      c = a[0]; c.width = Math.max(1, a[1] * d); c.height = Math.max(1, a[2] * d); ctx = c.getContext("2d"); ctx.scale(d, d);
+      ctx.fillStyle = K; ctx.strokeStyle = K; ctx.font = "10px Inter,sans-serif"; ctx.lineWidth = 1;
+      if (!W) return;
+      var len = n ? a[2] : a[1], o = a[3], u0 = Math.floor(-o / pxs / (g / 5)) * (g / 5);
+      for (v = u0; ; v += g / 5) {
+        x = o + v * pxs; if (x > len) break; if (x < 0) continue;
+        var maj = Math.abs(v % g) < 1e-6, h = maj ? 22 : 6;
+        ctx.beginPath(); if (n) { ctx.moveTo(22 - h, x + .5); ctx.lineTo(22, x + .5); } else { ctx.moveTo(x + .5, 22 - h); ctx.lineTo(x + .5, 22); } ctx.stroke();
+        if (maj) { if (n) { ctx.save(); ctx.translate(2, x + 3); ctx.rotate(-Math.PI / 2); ctx.translate(-0, 0); ctx.restore(); ctx.save(); ctx.translate(9, x + 4); ctx.rotate(-Math.PI / 2); ctx.fillText(v, 0, 0); ctx.restore(); } else ctx.fillText(v, x + 3, 10); }
+      }
+    });
+  }
+  function zoomAt(f, cx0, cy0) { var r = vp.getBoundingClientRect(), mx = cx0 - r.left, my = cy0 - r.top, z0 = Z; Z = clamp(Z * f, .25, zmax()); f = Z / z0; tx = mx - (mx - tx) * f; ty = my - (my - ty) * f; apply(); }
+  function zc(f) { var r = vp.getBoundingClientRect(); zoomAt(f, r.left + vw / 2, r.top + vh / 2); }
+  vp.addEventListener("wheel", function (e) { if (!W) return; e.preventDefault(); zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0016) * (e.deltaMode ? 20 : 1)), e.clientX, e.clientY); }, { passive: false });
+  vp.addEventListener("pointerdown", function (e) { if (!W || e.target.closest(".vt")) return; vp.setPointerCapture(e.pointerId); pts[e.pointerId] = [e.clientX, e.clientY]; pts[e.pointerId].np = !!(ptr && ptr.out); pin = 0; mv = 0; if (!pts[e.pointerId].np) vp.classList.add("drag"); });
+  vp.addEventListener("pointermove", function (e) {
+    var r = vp.getBoundingClientRect(); vp.style.setProperty("--mx", (e.clientX - r.left) + "px"); vp.style.setProperty("--my", (e.clientY - r.top) + "px");
+    if (W) { var ix = (e.clientX - r.left - tx) / Z * W / bw, iy = (e.clientY - r.top - ty) / Z * H / bh, ok = ix >= 0 && iy >= 0 && ix < W && iy < H; $("co").textContent = ok ? "X " + Math.floor(ix) + "   Y " + Math.floor(iy) : "X —   Y —"; }
+    var p = pts[e.pointerId]; if (!p) return; var ids = Object.keys(pts);
+    if (ids.length === 2) {
+      var o = pts[ids[0] == e.pointerId ? ids[1] : ids[0]], d0 = Math.hypot(p[0] - o[0], p[1] - o[1]), nx = e.clientX, ny = e.clientY, d1 = Math.hypot(nx - o[0], ny - o[1]);
+      if (d0 > 10 && d1 > 10) { zoomAt(d1 / d0, (nx + o[0]) / 2, (ny + o[1]) / 2); tx += (nx - p[0]) / 2; ty += (ny - p[1]) / 2; apply(); }
+      pin = 1;
+    } else if (!pin && !p.np) { tx += e.clientX - p[0]; ty += e.clientY - p[1]; mv += Math.abs(e.clientX - p[0]) + Math.abs(e.clientY - p[1]); apply(); }
+    p[0] = e.clientX; p[1] = e.clientY;
+  });
+  function pend2(e) { delete pts[e.pointerId]; if (!Object.keys(pts).length) vp.classList.remove("drag"); }
+  vp.addEventListener("pointerup", pend2); vp.addEventListener("pointercancel", pend2);
+  vp.addEventListener("dblclick", function (e) { if (!W || e.target.closest(".vt")) return; if (Math.abs(Z * bw / W - 1) < .02) view(); else { Z = 1; zoomAt(1 / (bw / W), e.clientX, e.clientY); } });
+  $("zi").onclick = function () { zc(1.4); }; $("zo").onclick = function () { zc(1 / 1.4); };
+  $("zf").onclick = view; $("z1").onclick = function () { if (W) { Z = 1; zc(W / bw); } };
+  $("gb").onclick = function () { this.classList.toggle("on"); gr.classList.toggle("on"); };
+  $("xb").onclick = function () { this.classList.toggle("on"); vp.classList.toggle("xh"); };
+  addEventListener("keydown", function (e) {
+    if (!W || e.target.tagName === "INPUT" || e.ctrlKey || e.metaKey) return; var k2 = e.key, m = 60;
+    if (k2 === "+" || k2 === "=") zc(1.25); else if (k2 === "-") zc(.8); else if (k2 === "0") view(); else if (k2 === "1") $("z1").click();
+    else if (k2 === "ArrowLeft") { tx += m; apply(); } else if (k2 === "ArrowRight") { tx -= m; apply(); } else if (k2 === "ArrowUp") { ty += m; apply(); } else if (k2 === "ArrowDown") { ty -= m; apply(); } else return;
+    e.preventDefault();
+  });
+  addEventListener("resize", function () { var r = vp.getBoundingClientRect(); if (Math.abs(r.width - vw) > 2 || Math.abs(r.height - vh) > 90) { if (W) view(); else { layout(); fit(); rulers(); } } });
+  vp.addEventListener("dragover", function (e) { e.preventDefault(); });
+  vp.addEventListener("drop", function (e) { e.preventDefault(); var f = e.dataTransfer.files; if (f && f[0] && /^image\//.test(f[0].type)) { $("file").files = f; $("file").onchange({ target: $("file") }); } });
+  $("tg").onclick = function () { var de = document.documentElement, dk = de.dataset.theme ? de.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; de.dataset.theme = dk ? "light" : "dark"; if (ref) seed(); setTimeout(rulers, 60); };
+  function qh() { $("qh").textContent = QC.low ? "হালকা মোড চালু: ছবি ১৬০০ পিক্সেল পর্যন্ত, ফোন কম গরম হয় ও ব্যাটারি কম খরচ হয়।" : "পূর্ণ কোয়ালিটি: ছবি ২৬০০ পিক্সেল পর্যন্ত।"; }
+  $("sQ").querySelectorAll("button").forEach(function (x, _, b) { x.onclick = function () { b.forEach(function (y) { y.classList.remove("on"); }); x.classList.add("on"); FULL = x.dataset.v === "full"; QC = Q(); SPR = {}; qh(); if (src && !planning) useCanvas(src); }; });
+  $("st").onclick = function () { var o = $("dk").classList.toggle("open"); this.classList.toggle("on", o); };
+  $("stage").addEventListener("pointerdown", function () { $("dk").classList.remove("open"); $("st").classList.remove("on"); });
+  qh(); layout(); rulers();
+  fit();
+})();
+</script>
+<script>
+document.addEventListener("pointerdown",function(e){var b=e.target.closest&&e.target.closest(".fab,.tb,.chip,.ib,.cta,.vt button");if(!b||b.disabled)return;var r=b.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,x=document.createElement("span");x.className="rpl";x.style.cssText="width:"+d+"px;height:"+d+"px;left:"+(e.clientX-r.left-d/2)+"px;top:"+(e.clientY-r.top-d/2)+"px";b.appendChild(x);setTimeout(function(){x.remove()},650);try{navigator.vibrate&&navigator.vibrate(6)}catch(_){}},true);
+</script>
+</body></html>
