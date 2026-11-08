@@ -209,12 +209,25 @@ var rnd = function (a, b) { return a + Math.random() * (b - a); };
 var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
 var bn = function (n) { return n.toLocaleString("bn-BD"); };
 var mkc = function (w, h) { var c; if (typeof OffscreenCanvas !== "undefined") c = new OffscreenCanvas(w, h); else { c = document.createElement("canvas"); c.width = w; c.height = h; } return c; };
+var K = null; // Rust/WASM kernels (null হলে আগের JS কোডই চলে)
+function loadK(mod) {
+  try {
+    var e = new WebAssembly.Instance(mod, {}).exports;
+    K = { run: function (fn, src, dst, ex) {
+      var n = src.length, p = e.alloc(n), q = e.alloc(n);
+      new Uint8Array(e.memory.buffer, p, n).set(src);
+      e[fn](p, q, W, H, ex);
+      dst.set(new Uint8Array(e.memory.buffer, q, n)); e.dealloc(p, n); e.dealloc(q, n); return dst;
+    } };
+  } catch (_) { K = null; }
+}
 function post(m, tr) { m.id = jid; self.postMessage(m, tr || []); }
 function say(m, pl) { post({ t: "msg", m: m, pl: pl ? 1 : 0 }); }
 function bar(v) { post({ t: "bar", v: v }); }
 
   function blur(d, r) {
     r = Math.max(1, Math.round(r));
+    if (K) return K.run("blur_rgb", d, new Uint8ClampedArray(d.length), r);
     var t = new Float32Array(d.length), o = new Uint8ClampedArray(d.length), x, y, c, s, n, a, b;
     for (y = 0; y < H; y++) for (c = 0; c < 3; c++) {
       s = 0; n = 0; for (x = 0; x <= r && x < W; x++) { s += d[(y * W + x) * 4 + c]; n++; }
@@ -238,6 +251,7 @@ function bar(v) { post({ t: "bar", v: v }); }
     for (i = 0; i < 766; i++) LUT[i] = Math.exp(-i * i / 3200);
     for (pass = 0; pass < 3; pass++) {
       var sp = SP[pass];
+      if (K) K.run("bilateral", a, b, sp); else
       for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
         i = (y * W + x) * 4; var r0 = a[i], g0 = a[i + 1], b0 = a[i + 2], sr = 0, sg = 0, sb = 0, sw = 0;
         for (var tp = 0; tp < 5; tp++) {
@@ -608,7 +622,7 @@ function flush() { // তৈরি স্তরগুলো মূল থ্র�
   }
 }
 self.onmessage = function (e) {
-  var d = e.data; jid = d.id; W = d.W; H = d.H; k = d.k; STYLE = d.STYLE; PAPER = d.PAPER; QC = d.QC; raw = ref = d.raw; FACES = d.faces || []; layers = []; sent = 0;
+  var d = e.data; if (d.wasm && !K) loadK(d.wasm); jid = d.id; W = d.W; H = d.H; k = d.k; STYLE = d.STYLE; PAPER = d.PAPER; QC = d.QC; raw = ref = d.raw; FACES = d.faces || []; layers = []; sent = 0;
   plan().then(function () { post({ t: "done", NL: NL }); });
 };
 })(self);
@@ -625,7 +639,8 @@ self.onmessage = function (e) {
   var COLS = ["#F24E1E","#A259FF","#1ABCFE","#0ACF83","#FF7262","#FFC700","#9747FF","#E8467C","#14AE5C","#0D99FF","#FF8A00","#00B5CE","#6C63FF","#E5484D","#30A46C","#F76B15","#3E63DD","#D6409F","#12A594","#8E4EC6","#FFB224","#0091FF","#E93D82","#7CE2FE"];
   var LOW0 = matchMedia("(pointer:coarse)").matches || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4, FULL = false, dirty = [], SPR = {};
   function Q() { var low = LOW0 && !FULL; return { low: low, maxd: low ? 1600 : 2600, s: low ? 1.5 : 2.5, side: low ? 3072 : 4096, mp: low ? 9e6 : 16e6, cap: low ? .6 : 1 }; }
-  var QC = Q();
+  var QC = Q(), KMOD = null;
+  fetch("kernels.wasm").then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject(); }).then(function (b) { return WebAssembly.compile(b); }).then(function (m) { KMOD = m; }).catch(function () {});
   var PAPER = "#f3efe6", MAXD = 2600;
   // swarm এর গোলাকার তীর কার্সর
   var ARROW = new Path2D("M4.6 3.9 C4.2 3.1 4.9 2.4 5.7 2.8 L20.6 9.4 C21.5 9.8 21.4 11.1 20.4 11.3 L13.9 12.9 C13.4 13 13 13.4 12.9 13.9 L11.3 20.4 C11.1 21.4 9.8 21.5 9.4 20.6 Z");
@@ -779,7 +794,7 @@ self.onmessage = function (e) {
     }
     detectFaces(function (faces) {
       if (my !== pj) return;
-      var m = { id: my, raw: new Uint8ClampedArray(raw), W: W, H: H, k: k, STYLE: STYLE, PAPER: PAPER, QC: { low: QC.low, cap: QC.cap }, faces: faces };
+      var m = { id: my, raw: new Uint8ClampedArray(raw), W: W, H: H, k: k, STYLE: STYLE, PAPER: PAPER, QC: { low: QC.low, cap: QC.cap }, faces: faces, wasm: KMOD };
       function inline() { // ওয়ার্কার না চললে আগের মতো মূল থ্রেডেই (ধীর, কিন্তু কাজ করে)
         var fk = { postMessage: function (x) { setTimeout(function () { onm(x); }, 0); }, onmessage: null };
         new Function("self", WSRC)(fk); fk.onmessage({ data: m });
