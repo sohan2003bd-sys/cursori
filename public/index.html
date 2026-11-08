@@ -390,6 +390,72 @@ async function importance(faces) {
     return r;
   }
   // ছবির গঠন দেখে নকশার ধরন বাছাই: নিয়মিত ইমারত / অনিয়মিত ফ্যাসাদ / মানুষ / পার্সপেকটিভ / প্রতিসম বস্তু / প্রকৃতি
+  function geoPlan(maxR) { // ছবির আলো-ছায়ার অঞ্চল থেকে ছবি-অনুযায়ী ভিন্ন জ্যামিতিক নকশা
+    var o = [], GW = 48, gs = W / GW, GH = Math.max(1, Math.round(H / gs)), n = GW * GH, T = new Uint8Array(n), Lb = new Int8Array(n).fill(-1), dk = "rgb(22,42,82)", cc = "rgb(96,128,184)", cw = Math.max(1.3, k * .7), x, y, i, rg = [], cen = [];
+    function cl(v, m) { return clamp(v, 2, m - 2); }
+    function pl(p, w, col) { return tl(p.map(function (q) { return [cl(q[0], W), cl(q[1], H)]; }), w, col); }
+    for (y = 0; y < GH; y++) for (x = 0; x < GW; x++) {
+      var s = 0, m = 0, xx, yy, x1 = Math.min(W, (x + 1) * gs | 0), y1 = Math.min(H, (y + 1) * gs | 0);
+      for (yy = y * gs | 0; yy < y1; yy += 3) for (xx = x * gs | 0; xx < x1; xx += 3) { i = (yy * W + xx) * 4; s += .3 * ref[i] + .59 * ref[i + 1] + .11 * ref[i + 2]; m++; }
+      T[y * GW + x] = Math.min(3, (m ? s / m : 128) / 64 | 0);
+    }
+    for (i = 0; i < n; i++) {
+      if (Lb[i] >= 0) continue;
+      var stk = [i], r = { a: 0, b: T[i], sx: 0, sy: 0, P: [] }, c, cx0, cy0;
+      Lb[i] = rg.length;
+      while (stk.length) {
+        c = stk.pop(); cx0 = c % GW; cy0 = c / GW | 0; r.a++; r.sx += cx0 + .5; r.sy += cy0 + .5;
+        r.P.push([cx0 * gs, cy0 * gs], [(cx0 + 1) * gs, cy0 * gs], [cx0 * gs, (cy0 + 1) * gs], [(cx0 + 1) * gs, (cy0 + 1) * gs]);
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var nx = cx0 + d[0], ny = cy0 + d[1], q = ny * GW + nx; if (nx >= 0 && ny >= 0 && nx < GW && ny < GH && Lb[q] < 0 && T[q] === r.b) { Lb[q] = rg.length; stk.push(q); } });
+      }
+      if (r.a >= 5) rg.push(r);
+    }
+    rg.sort(function (p, q) { return q.a - p.a; });
+    function hull(P) {
+      P.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
+      var h = [], t, lo, i2; function cr(o2, a2, b2) { return (a2[0] - o2[0]) * (b2[1] - o2[1]) - (a2[1] - o2[1]) * (b2[0] - o2[0]); }
+      for (i2 = 0; i2 < P.length; i2++) { while (h.length >= 2 && cr(h[h.length - 2], h[h.length - 1], P[i2]) <= 0) h.pop(); h.push(P[i2]); }
+      lo = h.length + 1; for (i2 = P.length - 2; i2 >= 0; i2--) { while (h.length >= lo && cr(h[h.length - 2], h[h.length - 1], P[i2]) <= 0) h.pop(); h.push(P[i2]); }
+      h.pop(); return h;
+    }
+    function clip(P, sg, ax, ay, bx, by) { // উত্তল বহুভুজে রেখা কাটা
+      var t0 = 0, t1 = 1, dx = bx - ax, dy = by - ay, i2, q, nx = 0, ny = 0, nm, de;
+      for (i2 = 0; i2 < P.length; i2++) { q = P[(i2 + 1) % P.length]; nx = (q[1] - P[i2][1]) * sg; ny = -(q[0] - P[i2][0]) * sg; nm = -((ax - P[i2][0]) * nx + (ay - P[i2][1]) * ny); de = dx * nx + dy * ny;
+        if (de === 0) { if (nm < 0) return null; } else if (de > 0) t1 = Math.min(t1, nm / de); else t0 = Math.max(t0, nm / de); if (t0 >= t1) return null; }
+      return [[ax + dx * t0, ay + dy * t0], [ax + dx * t1, ay + dy * t1]];
+    }
+    rg.slice(0, maxR).forEach(function (r, ri) {
+      var P = hull(r.P), ar2 = 0, j, q, x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, mx = r.sx / r.a * gs, my = r.sy / r.a * gs, sg, bw, bh, asp, ha, fill, v;
+      if (P.length < 3) return;
+      for (j = 0; j < P.length; j++) { q = P[(j + 1) % P.length]; ar2 += P[j][0] * q[1] - q[0] * P[j][1]; x0 = Math.min(x0, P[j][0]); x1 = Math.max(x1, P[j][0]); y0 = Math.min(y0, P[j][1]); y1 = Math.max(y1, P[j][1]); }
+      sg = ar2 > 0 ? 1 : -1; ha = Math.abs(ar2) / 2; bw = x1 - x0; bh = y1 - y0; asp = Math.max(bw, bh) / Math.max(1, Math.min(bw, bh)); fill = r.a * gs * gs / Math.max(1, ha);
+      o.push(pl(P.concat([P[0]]), cw * 1.5, dk)); cen.push([mx, my]);
+      v = r.b <= 1 ? "hatch" : asp > 2.4 ? "axis" : fill > .8 ? "circle" : "fan";
+      if (v === "hatch") {
+        var sp = Math.max(6 * k, gs * (.3 + .22 * r.b)), c0, e0, A, nl = 0, up = r.b === 0;
+        for (c0 = up ? x0 + y0 - 10 : x0 - y1 - 10, e0 = up ? x1 + y1 + 10 : x1 - y0 + 10; c0 < e0 && nl < 45; c0 += sp) {
+          A = up ? clip(P, sg, c0 - y0 + 10, y0 - 10, c0 - y1 - 10, y1 + 10) : clip(P, sg, c0 + y0 - 10, y0 - 10, c0 + y1 + 10, y1 + 10);
+          if (A && Math.hypot(A[1][0] - A[0][0], A[1][1] - A[0][1]) > sp * .6) { o.push(pl(A, cw * .6, cc)); nl++; }
+        }
+      } else if (v === "axis") {
+        var hz = bw >= bh, off = (hz ? bh : bw) * .7 + 10 * k, yD = Math.min(H - 22 * k, y1 + off * .5), xD = Math.min(W - 26 * k, x1 + off * .5), d1 = hz ? [x0, my, x1, my] : [mx, y0, mx, y1];
+        o.push(pl([[d1[0], d1[1]], [d1[2], d1[3]]], cw, dk));
+        var D = hz ? [[x0, yD], [x1, yD]] : [[xD, y0], [xD, y1]];
+        o.push(pl(D, cw, dk), pl(hz ? [[x0, D[0][1] - 6 * k], [x0, D[0][1] + 6 * k]] : [[D[0][0] - 6 * k, y0], [D[0][0] + 6 * k, y0]], cw, dk), pl(hz ? [[x1, D[0][1] - 6 * k], [x1, D[0][1] + 6 * k]] : [[D[0][0] - 6 * k, y1], [D[0][0] + 6 * k, y1]], cw, dk));
+        o.push.apply(o, num(String(Math.round((hz ? bw : bh) / k)), hz ? (x0 + x1) / 2 : xD + 12 * k, hz ? yD + 12 * k : (y0 + y1) / 2, 9 * k, hz ? 0 : 1, cw, dk));
+      } else if (v === "circle") {
+        var rr = Math.sqrt(r.a * gs * gs / Math.PI), pts = [], t;
+        [1, .6].forEach(function (u) { pts = []; for (t = 0; t <= 48; t++) pts.push([mx + Math.cos(t / 48 * 6.2832) * rr * u, my + Math.sin(t / 48 * 6.2832) * rr * u]); o.push(pl(pts, cw * (u === 1 ? 1.2 : .8), u === 1 ? dk : cc)); });
+        o.push(pl([[mx - rr * 1.25, my], [mx + rr * 1.25, my]], cw * .7, cc), pl([[mx, my - rr * 1.25], [mx, my + rr * 1.25]], cw * .7, cc));
+      } else {
+        for (j = 0; j < P.length; j += P.length > 12 ? 2 : 1) o.push(pl([[mx, my], P[j]], cw * .7, cc));
+        o.push(pl([[mx - 6 * k, my], [mx + 6 * k, my]], cw, dk), pl([[mx, my - 6 * k], [mx, my + 6 * k]], cw, dk));
+      }
+    });
+    if (cen.length > 2) o.push(pl(cen.slice().sort(function (p, q) { return p[0] - q[0]; }), cw * .8, cc));
+    return o;
+  }
+  function techArch(es) { var A = archPlan(es), K = archPlan.k; return (K === "land" || K === "generic" || !K) ? geoPlan(14) : A.concat(geoPlan(5)); }
   function archPlan(es) {
     var ic = es.ic, n = ic.length, Lb = es.Lb, rb = Math.max(2, Math.round(k * 2)), NX = Math.ceil(W / rb) + 2, NY = Math.ceil(H / rb) + 2, px = new Float32Array(NX), py = new Float32Array(NY), ex = new Float32Array(NX), te = 0, vx = 0, hx = 0, dg = 0, mx = 0, my = 0, xs = [], ys = [], o = [], i, j, c, gx, gy, a, b, q, hl = null, cw = Math.max(1.3, k * .7), cc = "rgb(70,100,160)", dk = "rgb(30,58,112)";
     if (n < 60) { archPlan.k = "generic"; return archLines(es); }
@@ -555,7 +621,7 @@ async function importance(faces) {
     layers = [];
     if (tech) { // আগে জ্যামিতিক নকশা: নির্মাণ-রেখা, ফ্রেম ও পেনসিলের কিনারা; তারপর রং
       say("নকশা তৈরি…"); await tick(); es0 = await edgeSet();
-      layers.push(techGrid(true), archPlan(es0), techFrame(), es0.ic.filter(function (c, i) { return i % 3 === 0; }).map(function (c) { return ink(c.x, c.y, es0.Lb, es0.E, es0.bc, [84, 112, 168]); }));
+      layers.push(techGrid(true), techArch(es0), techFrame(), es0.ic.filter(function (c, i) { return i % 3 === 0; }).map(function (c) { return ink(c.x, c.y, es0.Lb, es0.E, es0.bc, [84, 112, 168]); }));
       layers.forEach(function (L) { L.forEach(function (s) { s.sp = .4; }); }); flush(); // নকশার পর্ব ধীরে, যাতে স্পষ্ট দেখা যায়
     }
     for (li = 0; li < 8; li++) {
@@ -663,7 +729,7 @@ self.onmessage = function (e) {
   var $ = function (i) { return document.getElementById(i); };
   var cv = $("cv"), cx, ov = $("ov"), ox = ov.getContext("2d"), gd = $("gd"), gx, ptrT = 0, so = $("so"), sox = so.getContext("2d"), sod = false, pdown = false, pact = false, sol = [];
   // W,H = পরিকল্পনার মাপ; S = ক্যানভাসের হাই-রেজুলেশন গুণক (সেভ করলে এই মাপেই হবে)
-  var W, H, k = 1, S = 2, ref, raw, src, STYLE = "auto", cart = false, human = false, tech = false, layers = [], NL = 8, N = 24, SPD = 1, BT = 4, job = 0, pj = 0, ready = false, planning = false, go = false, ptr = null, Z = 1;
+  var W, H, k = 1, S = 2, ref, raw, src, STYLE = "auto", cart = false, human = false, tech = false, layers = [], NL = 8, N = 24, SPD = 2.5, BT = 4, job = 0, pj = 0, ready = false, planning = false, go = false, ptr = null, Z = 1;
   var LF = [1, 1.3, 2, 3.2, 4.5, 6, 8, 10, 4], GR = [6, 4], QF = 1, fte = 16;
   // ---------- Render Worker: আঁকার ক্যানভাস আলাদা থ্রেডে (না চললে আগের মতো মূল থ্রেডে) ----------
   var RW = null, cn = 0, CB = new Float32Array(8192), puid = 0, CVW = 0, CVH = 0;
@@ -824,7 +890,7 @@ self.onmessage = function (e) {
     for (i = 0; i < P.n; i++) { o = P.off[i]; out[i] = { l: P.l[i], w: P.w[i], len: P.ln[i], sp: P.sp[i], g: P.g, pk: P, i: i, p: [[P.pts[2 * o], P.pts[2 * o + 1]]] }; }
     return out;
   }
-  function calcN() { return 36 + Math.round(54 * clamp((Math.sqrt(W * H) - 500) / 1700, 0, 1)); } // ছবি বড় হলে কার্সর বেশি: ২৪ থেকে ৬০
+  function calcN() { return Math.round((36 + 54 * clamp((Math.sqrt(W * H) - 500) / 1700, 0, 1)) * (QC.low ? 1 : 1.5)); } // ছবি বড় হলে কার্সর বেশি: ২৪ থেকে ৬০
   function fadeGuide() { gd.style.transition = "opacity 1.4s ease"; gd.style.opacity = 0; var j0 = job; setTimeout(function () { if (j0 === job) { gx.setTransform(1, 0, 0, 1, 0, 0); gx.clearRect(0, 0, 1e5, 1e5); gx.setTransform(S, 0, 0, S, 0, 0); } }, 1600); }
   function detectFaces(cb) {
     try { if (window.FaceDetector && src) { new window.FaceDetector({ maxDetectedFaces: 12 }).detect(src).then(function (fs) { cb(fs.map(function (f) { var b = f.boundingBox; return [b.x, b.y, b.width, b.height]; })); }, function () { cb([]); }); return; } } catch (e) {}
@@ -1032,13 +1098,13 @@ self.onmessage = function (e) {
       if (my !== job) return;
       if (!go && now - last < 33) { requestAnimationFrame(frame); return; }
       var dt = Math.min(.05, (now - last) / 1000), ds = dt * SPD, tm = now / 1000, act = 0, orb = [], a, cw = cv.clientWidth || 360;
-      if (go && !finished) { fte += (Math.min(100, now - last) - fte) * .08; QF = fte > 34 ? Math.max(.34, QF - .02) : fte < 21 ? Math.min(1, QF + .008) : QF; }
+      if (go && !finished) { fte += (Math.min(100, now - last) - fte) * .08; QF = fte > 34 ? Math.max(.34, QF - .02) : fte < 21 ? Math.min(1, QF + .008) : QF; SPD = QF < .5 ? Math.max(2, SPD - .02) : QF >= 1 && fte < 19 ? Math.min(4.5, SPD + .004) : SPD; }
       last = now; while (nreg < layers.length) reg(nreg++);
       var q = W / cw * clamp(cw / 760, .45, 1), f = ov.width / W, fo = !!ptr && ptr.out && (ptr.down || ptr.touch); pact = !!ptr && (!ptr.out || fo);
       for (j = 0; j < N; j++) {
         a = agents[j]; a.lx = a.x; a.ly = a.y;
         var rem = ds, gd = 0;
-        while (gd++ < 8) {
+        while (gd++ < (SPD > 2 ? 24 : 8)) {
           if (!a.s && go) {
             var s = take(a);
             if (s) {
